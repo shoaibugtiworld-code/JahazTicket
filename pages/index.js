@@ -35,7 +35,7 @@ export default function Home() {
   const searchFlights = async () => {
     setError("");
     if (!destination || !departureDate) {
-      setError("To aur Departure Date bharna zaroori hai");
+      setError("Please fill in the destination and departure date");
       return;
     }
     setLoading(true);
@@ -55,12 +55,12 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Kuch masla ho gaya");
+        setError(data.error || "Something went wrong");
       } else {
         setOffers(data.offers);
       }
     } catch (e) {
-      setError("Server tak nahi pohanch saka");
+      setError("Couldn't reach the server");
     } finally {
       setLoading(false);
     }
@@ -200,7 +200,7 @@ export default function Home() {
           disabled={loading}
           className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg disabled:opacity-60"
         >
-          {loading ? "Search ho raha hai..." : "Search Flights"}
+          {loading ? "Searching..." : "Search Flights"}
         </button>
       </div>
 
@@ -210,7 +210,7 @@ export default function Home() {
       {offers && (
         <div className="px-4 mt-6 space-y-3">
           {offers.length === 0 && (
-            <p className="text-muted text-center">Is route par flights nahi milin.</p>
+            <p className="text-muted text-center">No flights found on this route.</p>
           )}
           {offers.map((offer) => (
             <div
