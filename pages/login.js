@@ -20,7 +20,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!supabase) {
-      setError("Supabase configure nahi hai. .env.local check karein.");
+      setError("Supabase isn't configured yet. Check environment variables.");
       return;
     }
     setLoading(true);
@@ -37,7 +37,7 @@ export default function Login() {
     <div className="min-h-screen bg-bg text-white flex flex-col justify-center px-6">
       <div className="max-w-sm mx-auto w-full">
         <h1 className="text-3xl font-bold mb-1">Jahaz Ticket</h1>
-        <p className="text-muted mb-8">Har flight, seedhi qeemat.</p>
+        <p className="text-muted mb-8">Every flight, one clear price.</p>
 
         {!sent ? (
           <form onSubmit={sendMagicLink} className="space-y-3">
@@ -55,18 +55,18 @@ export default function Login() {
               disabled={loading}
               className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-3 font-semibold disabled:opacity-60"
             >
-              {loading ? "Bhej rahe hain..." : "Login link bhejein"}
+              {loading ? "Sending..." : "Send login link"}
             </button>
           </form>
         ) : (
           <p className="text-muted">
-            Link aapke email <span className="text-white">{email}</span> par bhej diya gaya hai. Wahan click karein.
+            We sent a login link to <span className="text-white">{email}</span>. Open it to sign in.
           </p>
         )}
 
         <div className="flex items-center gap-3 my-6">
           <div className="h-px flex-1 bg-cardline" />
-          <span className="text-muted text-sm">ya</span>
+          <span className="text-muted text-sm">or</span>
           <div className="h-px flex-1 bg-cardline" />
         </div>
 
@@ -74,7 +74,7 @@ export default function Login() {
           onClick={continueAsGuest}
           className="w-full border border-cardline rounded-full py-3 font-semibold hover:border-brand transition-colors"
         >
-          Guest ke taur par jaari rakhein
+          Continue as guest
         </button>
       </div>
     </div>
