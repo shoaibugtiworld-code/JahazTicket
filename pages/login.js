@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import Logo from "../components/Logo";
 
 export default function Login() {
   const router = useRouter();
@@ -36,8 +37,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-bg text-white flex flex-col justify-center px-6">
       <div className="max-w-sm mx-auto w-full">
-        <h1 className="text-3xl font-bold mb-1">Jahaz Ticket</h1>
-        <p className="text-muted mb-8">Every flight, one clear price.</p>
+        <div className="mb-8">
+          <Logo size="large" />
+          <p className="text-muted mt-2">Every flight, one clear price.</p>
+        </div>
 
         {!sent ? (
           <form onSubmit={sendMagicLink} className="space-y-3">
