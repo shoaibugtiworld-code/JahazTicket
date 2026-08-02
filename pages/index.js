@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Logo from "../components/Logo";
+import Footer from "../components/Footer";
 
 const TRIP_TYPES = ["One-way", "Round-trip", "Multi-city"];
 
@@ -71,12 +73,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-bg text-white pb-16">
       {/* Header */}
-      <div className="flex items-center gap-4 px-4 py-5">
-        <button onClick={() => router.push("/login")} className="text-2xl leading-none">
-          ←
+      <div className="flex items-center justify-between px-4 py-5">
+        <Logo />
+        <button onClick={() => router.push("/login")} className="text-muted text-sm">
+          Sign out
         </button>
-        <h1 className="text-xl font-bold">Flights Search</h1>
       </div>
+      <h1 className="px-4 text-xl font-bold mb-4">Flights Search</h1>
 
       {/* Trip type tabs */}
       <div className="flex gap-2 px-4 mb-4">
@@ -233,6 +236,8 @@ export default function Home() {
           ))}
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }
