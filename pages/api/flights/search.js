@@ -19,12 +19,12 @@ export default async function handler(req, res) {
   const { origin, destination, departureDate, returnDate, passengers, cabinClass } = req.body;
 
   if (!origin || !destination || !departureDate) {
-    return res.status(400).json({ error: "origin, destination aur departureDate zaroori hain" });
+    return res.status(400).json({ error: "origin, destination and departureDate are required" });
   }
 
   const duffelKey = process.env.DUFFEL_API_KEY;
   if (!duffelKey) {
-    return res.status(500).json({ error: "DUFFEL_API_KEY set nahi hai. Vercel env vars check karein." });
+    return res.status(500).json({ error: "DUFFEL_API_KEY is not set. Check Vercel environment variables." });
   }
 
   const slices = [{ origin, destination, departure_date: departureDate }];
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
 
     if (!duffelRes.ok) {
       return res.status(duffelRes.status).json({
-        error: "Duffel se flights nahi mil sakin",
+        error: "Couldn't fetch flights from Duffel",
         details: data,
       });
     }
