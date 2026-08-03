@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed, use POST" });
   }
 
-  const { slices: inputSlices, passengers, cabinClass } = req.body;
+  const { slices: inputSlices, passengers: inputPassengers, cabinClass } = req.body;
 
   if (!Array.isArray(inputSlices) || inputSlices.length === 0) {
     return res.status(400).json({ error: "At least one flight segment (slice) is required" });
@@ -25,6 +25,9 @@ export default async function handler(req, res) {
     if (!s.origin || !s.destination || !s.date) {
       return res.status(400).json({ error: "Each segment needs origin, destination and date" });
     }
+  }
+  if (!Array.isArray(inputPassengers) || inputPassengers.length === 0) {
+    return res.status(400).json({ error: "At least one passenger is required" });
   }
 
   const duffelKey = process.env.DUFFEL_API_KEY;
@@ -41,7 +44,7 @@ export default async function handler(req, res) {
   const payload = {
     data: {
       slices,
-      passengers: Array.from({ length: passengers || 1 }, () => ({ type: "adult" })),
+      passengers: inputPassengers.map((p) => (p.age !== undefined ? { age: p.age } : { type: p.type })),
       cabin_class: cabinClass || "economy",
     },
   };
