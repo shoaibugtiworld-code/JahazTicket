@@ -3,10 +3,10 @@ import { useRouter } from "next/router";
 import Logo from "../components/Logo";
 
 const METHODS = [
-  { id: "jazzcash", label: "JazzCash" },
-  { id: "easypaisa", label: "EasyPaisa" },
-  { id: "card", label: "Visa / Mastercard" },
-  { id: "bank", label: "Bank Transfer" },
+  { id: "card", label: "Debit / Credit Card", sub: "Visa · Mastercard · all Pakistani & international cards" },
+  { id: "bank", label: "Bank Transfer", sub: "Pay directly from your bank account" },
+  { id: "easypaisa", label: "EasyPaisa", sub: "Active EasyPaisa account needed" },
+  { id: "jazzcash", label: "JazzCash", sub: "Pay using your JazzCash wallet" },
 ];
 
 export default function Payment() {
@@ -55,15 +55,12 @@ export default function Payment() {
   if (!checked || !offer || !passenger) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-white pb-16">
+    <div className="min-h-screen bg-bg text-white pb-28">
       <div className="flex items-center justify-between px-4 py-5">
+        <button onClick={() => router.push("/booking")} className="text-xl">←</button>
+        <p className="font-bold">Payment</p>
         <Logo />
-        <button onClick={() => router.push("/booking")} className="text-muted text-sm">
-          Back
-        </button>
       </div>
-
-      <h1 className="px-4 text-xl font-bold mb-4">Payment</h1>
 
       {/* Review summary */}
       <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 mb-6 space-y-1">
@@ -75,47 +72,60 @@ export default function Payment() {
           </p>
         ))}
         <p className="text-muted text-sm">Passenger: {passenger.fullName}</p>
-        <p className="text-brand font-bold text-lg mt-2">
-          {offer.currency} {offer.finalPrice}
-        </p>
       </div>
 
-      <div className="px-4 space-y-2 mb-6">
-        <p className="text-muted text-xs mb-2">Select Payment Method</p>
+      <p className="px-4 text-muted text-sm mb-2">Select a payment method</p>
+
+      <div className="mx-4 bg-card border border-cardline rounded-xl2 divide-y divide-cardline overflow-hidden mb-6">
         {METHODS.map((m) => (
           <button
             key={m.id}
             onClick={() => setMethod(m.id)}
-            className={`w-full text-left px-4 py-3 rounded-xl border ${
-              method === m.id ? "border-brand text-brand" : "border-cardline bg-card"
-            }`}
+            className="w-full flex items-center gap-4 px-4 py-4 text-left"
           >
-            {m.label}
+            <span
+              className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+                method === m.id ? "border-brand" : "border-cardline"
+              }`}
+            >
+              {method === m.id && <span className="w-2.5 h-2.5 rounded-full bg-brand" />}
+            </span>
+            <span>
+              <span className="block font-semibold">{m.label}</span>
+              <span className="block text-muted text-xs mt-0.5">{m.sub}</span>
+            </span>
           </button>
         ))}
       </div>
 
       {error && <p className="text-red-400 text-center px-4 mb-4">{error}</p>}
 
-      {status === "pending_integration" ? (
-        <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 text-center">
+      {status === "pending_integration" && (
+        <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 text-center mb-6">
           <p className="font-semibold mb-1">Payment coming soon</p>
           <p className="text-muted text-sm">
             Your payment aggregator isn't connected yet. Once it's live, this button will complete
             the booking instantly.
           </p>
         </div>
-      ) : (
-        <div className="px-4">
-          <button
-            onClick={pay}
-            disabled={status === "processing"}
-            className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg disabled:opacity-60"
-          >
-            {status === "processing" ? "Processing..." : `Pay ${offer.currency} ${offer.finalPrice}`}
-          </button>
-        </div>
       )}
+
+      {/* Sticky bottom price + pay bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-cardline px-4 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-muted text-sm">Total price</span>
+          <span className="font-bold text-lg">
+            {offer.currency} {offer.finalPrice}
+          </span>
+        </div>
+        <button
+          onClick={pay}
+          disabled={status === "processing"}
+          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg disabled:opacity-60"
+        >
+          {status === "processing" ? "Processing..." : "Pay Now"}
+        </button>
+      </div>
     </div>
   );
 }
