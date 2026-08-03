@@ -68,10 +68,12 @@ export default function Payment() {
       {/* Review summary */}
       <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 mb-6 space-y-1">
         <p className="font-bold">{offer.airline}</p>
-        <p className="text-muted text-sm">
-          {offer.originAirport} → {offer.destinationAirport} ·{" "}
-          {offer.stops === 0 ? "Direct" : `${offer.stops} stop(s)`}
-        </p>
+        {offer.legs.map((leg, i) => (
+          <p key={i} className="text-muted text-sm">
+            {leg.originAirport} → {leg.destinationAirport} ·{" "}
+            {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
+          </p>
+        ))}
         <p className="text-muted text-sm">Passenger: {passenger.fullName}</p>
         <p className="text-brand font-bold text-lg mt-2">
           {offer.currency} {offer.finalPrice}
