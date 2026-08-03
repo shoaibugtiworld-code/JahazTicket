@@ -228,9 +228,18 @@ export default function Home() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-brand font-bold text-lg">
+                <p className="text-brand font-bold text-lg mb-1">
                   {offer.currency} {offer.finalPrice}
                 </p>
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
+                    router.push("/booking");
+                  }}
+                  className="bg-brand hover:bg-brandDark transition-colors rounded-full px-4 py-1.5 text-sm font-semibold"
+                >
+                  Select
+                </button>
               </div>
             </div>
           ))}
