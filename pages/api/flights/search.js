@@ -74,6 +74,7 @@ export default async function handler(req, res) {
       currency: offer.total_currency,
       basePrice: offer.total_amount, // internal only — do not send to frontend in production
       finalPrice: applyMarkup(offer.total_amount),
+      passengerIds: (offer.passengers || []).map((p) => p.id),
     }));
 
     // Sort cheapest-first so the lowest final price is always shown on top.
