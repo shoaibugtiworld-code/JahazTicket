@@ -23,8 +23,11 @@ export default function Home() {
   // Multi-city fields — starts with 2 segments, user can add more
   const [segments, setSegments] = useState([emptySegment(), emptySegment()]);
 
-  const [passengers, setPassengers] = useState(1);
+  const [adultCount, setAdultCount] = useState(1);
+  const [childCount, setChildCount] = useState(0);
+  const [infantCount, setInfantCount] = useState(0);
   const [cabinClass, setCabinClass] = useState("economy");
+  const [showPaxModal, setShowPaxModal] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -74,6 +77,14 @@ export default function Home() {
     return segments.map((s) => ({ origin: s.origin, destination: s.destination, date: s.date }));
   };
 
+  const buildPassengers = () => {
+    const list = [];
+    for (let i = 0; i < adultCount; i++) list.push({ type: "adult" });
+    for (let i = 0; i < childCount; i++) list.push({ type: "child" });
+    for (let i = 0; i < infantCount; i++) list.push({ type: "infant_without_seat" });
+    return list;
+  };
+
   const validate = () => {
     if (tripType === "One-way") {
       if (!origin || !destination || !departureDate) return "Please fill in From, To and Departure Date";
@@ -86,6 +97,7 @@ export default function Home() {
         if (!s.origin || !s.destination || !s.date) return "Please fill in every flight's From, To and Date";
       }
     }
+    if (adultCount < 1) return "At least 1 adult passenger is required";
     return null;
   };
 
@@ -104,7 +116,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slices: buildSlices(),
-          passengers,
+          passengers: buildPassengers(),
           cabinClass,
         }),
       });
@@ -269,29 +281,17 @@ export default function Home() {
           </div>
         )}
 
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
+        <div
+          onClick={() => setShowPaxModal(true)}
+          className="flex items-center gap-4 px-4 py-4 border-b border-cardline cursor-pointer"
+        >
           <span className="text-xl">👪</span>
           <div className="flex-1">
             <p className="text-muted text-xs">Passengers &amp; Cabin Class</p>
-            <div className="flex gap-3 mt-1">
-              <input
-                type="number"
-                min={1}
-                value={passengers}
-                onChange={(e) => setPassengers(Number(e.target.value))}
-                className="bg-transparent font-bold text-lg outline-none w-14"
-              />
-              <select
-                value={cabinClass}
-                onChange={(e) => setCabinClass(e.target.value)}
-                className="bg-transparent font-bold text-lg outline-none"
-              >
-                <option value="economy">Economy</option>
-                <option value="premium_economy">Premium Economy</option>
-                <option value="business">Business</option>
-                <option value="first">First</option>
-              </select>
-            </div>
+            <p className="font-bold text-lg mt-1">
+              {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
+              {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+            </p>
           </div>
         </div>
 
@@ -353,6 +353,71 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Passengers & Cabin Class modal */}
+      {showPaxModal && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-bg border-t sm:border border-cardline rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-cardline">
+              <button onClick={() => setShowPaxModal(false)} className="text-xl">✕</button>
+              <p className="font-bold">Passengers &amp; Cabin Class</p>
+              <button onClick={() => setShowPaxModal(false)} className="text-brand text-xl">✓</button>
+            </div>
+
+            <div className="px-4 py-4">
+              <p className="text-muted text-xs uppercase tracking-wide mb-3">Passengers</p>
+
+              {[
+                { label: "Adult", hint: "(>12 years)", value: adultCount, setValue: setAdultCount, min: 1 },
+                { label: "Child", hint: "(2–12 years)", value: childCount, setValue: setChildCount, min: 0 },
+                { label: "Infant", hint: "(<2 years)", value: infantCount, setValue: setInfantCount, min: 0 },
+              ].map((row) => (
+                <div key={row.label} className="flex items-center justify-between py-3 border-b border-cardline last:border-0">
+                  <div>
+                    <p className="font-semibold">{row.label}</p>
+                    <p className="text-muted text-xs">{row.hint}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => row.setValue(Math.max(row.min, row.value - 1))}
+                      className="w-9 h-9 rounded-full border border-cardline flex items-center justify-center"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center font-bold">{row.value}</span>
+                    <button
+                      onClick={() => row.setValue(row.value + 1)}
+                      className="w-9 h-9 rounded-full border border-cardline flex items-center justify-center"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <p className="text-muted text-xs uppercase tracking-wide mt-6 mb-3">Cabin Class</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: "economy", label: "Economy" },
+                  { id: "premium_economy", label: "Premium Economy" },
+                  { id: "business", label: "Business" },
+                  { id: "first", label: "First Class" },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setCabinClass(c.id)}
+                    className={`py-3 rounded-xl border text-sm font-semibold ${
+                      cabinClass === c.id ? "border-brand text-brand" : "border-cardline text-white"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
