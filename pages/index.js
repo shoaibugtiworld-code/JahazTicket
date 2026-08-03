@@ -80,8 +80,10 @@ export default function Home() {
   const buildPassengers = () => {
     const list = [];
     for (let i = 0; i < adultCount; i++) list.push({ type: "adult" });
-    for (let i = 0; i < childCount; i++) list.push({ type: "child" });
-    for (let i = 0; i < infantCount; i++) list.push({ type: "infant_without_seat" });
+    // Duffel requires "age" (not "type") for anyone under 18 — using representative
+    // ages for now (8 for child, 1 for infant). Exact DOB is collected at booking time.
+    for (let i = 0; i < childCount; i++) list.push({ age: 8 });
+    for (let i = 0; i < infantCount; i++) list.push({ age: 1 });
     return list;
   };
 
