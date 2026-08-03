@@ -16,10 +16,15 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed, use POST" });
   }
 
-  const { origin, destination, departureDate, returnDate, passengers, cabinClass } = req.body;
+  const { slices: inputSlices, passengers, cabinClass } = req.body;
 
-  if (!origin || !destination || !departureDate) {
-    return res.status(400).json({ error: "origin, destination and departureDate are required" });
+  if (!Array.isArray(inputSlices) || inputSlices.length === 0) {
+    return res.status(400).json({ error: "At least one flight segment (slice) is required" });
+  }
+  for (const s of inputSlices) {
+    if (!s.origin || !s.destination || !s.date) {
+      return res.status(400).json({ error: "Each segment needs origin, destination and date" });
+    }
   }
 
   const duffelKey = process.env.DUFFEL_API_KEY;
@@ -27,10 +32,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "DUFFEL_API_KEY is not set. Check Vercel environment variables." });
   }
 
-  const slices = [{ origin, destination, departure_date: departureDate }];
-  if (returnDate) {
-    slices.push({ origin: destination, destination: origin, departure_date: returnDate });
-  }
+  const slices = inputSlices.map((s) => ({
+    origin: s.origin,
+    destination: s.destination,
+    departure_date: s.date,
+  }));
 
   const payload = {
     data: {
@@ -65,16 +71,17 @@ export default async function handler(req, res) {
       id: offer.id,
       airline: offer.owner?.name,
       airlineLogo: offer.owner?.logo_symbol_url,
-      departureDate: offer.slices?.[0]?.segments?.[0]?.departing_at,
-      arrivalDate:
-        offer.slices?.[0]?.segments?.[offer.slices[0].segments.length - 1]?.arriving_at,
-      originAirport: offer.slices?.[0]?.origin?.iata_code,
-      destinationAirport: offer.slices?.[0]?.destination?.iata_code,
-      stops: (offer.slices?.[0]?.segments?.length || 1) - 1,
       currency: offer.total_currency,
       basePrice: offer.total_amount, // internal only — do not send to frontend in production
       finalPrice: applyMarkup(offer.total_amount),
       passengerIds: (offer.passengers || []).map((p) => p.id),
+      legs: (offer.slices || []).map((slice) => ({
+        originAirport: slice.origin?.iata_code,
+        destinationAirport: slice.destination?.iata_code,
+        departureDate: slice.segments?.[0]?.departing_at,
+        arrivalDate: slice.segments?.[slice.segments.length - 1]?.arriving_at,
+        stops: (slice.segments?.length || 1) - 1,
+      })),
     }));
 
     // Sort cheapest-first so the lowest final price is always shown on top.
