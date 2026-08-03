@@ -5,14 +5,24 @@ import Footer from "../components/Footer";
 
 const TRIP_TYPES = ["One-way", "Round-trip", "Multi-city"];
 
+function emptySegment() {
+  return { origin: "", destination: "", date: "" };
+}
+
 export default function Home() {
   const router = useRouter();
   const [checkedSession, setCheckedSession] = useState(false);
   const [tripType, setTripType] = useState("One-way");
+
+  // One-way / Round-trip fields
   const [origin, setOrigin] = useState("DEA");
   const [destination, setDestination] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
+
+  // Multi-city fields — starts with 2 segments, user can add more
+  const [segments, setSegments] = useState([emptySegment(), emptySegment()]);
+
   const [passengers, setPassengers] = useState(1);
   const [cabinClass, setCabinClass] = useState("economy");
 
@@ -34,12 +44,58 @@ export default function Home() {
     setDestination(origin);
   };
 
+  const updateSegment = (index, field, value) => {
+    setSegments((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const addSegment = () => {
+    setSegments((prev) => [...prev, emptySegment()]);
+  };
+
+  const removeSegment = (index) => {
+    setSegments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const buildSlices = () => {
+    if (tripType === "One-way") {
+      return [{ origin, destination, date: departureDate }];
+    }
+    if (tripType === "Round-trip") {
+      return [
+        { origin, destination, date: departureDate },
+        { origin: destination, destination: origin, date: returnDate },
+      ];
+    }
+    // Multi-city
+    return segments.map((s) => ({ origin: s.origin, destination: s.destination, date: s.date }));
+  };
+
+  const validate = () => {
+    if (tripType === "One-way") {
+      if (!origin || !destination || !departureDate) return "Please fill in From, To and Departure Date";
+    } else if (tripType === "Round-trip") {
+      if (!origin || !destination || !departureDate || !returnDate)
+        return "Please fill in From, To, Departure Date and Return Date";
+    } else {
+      if (segments.length < 2) return "Multi-city needs at least 2 flights";
+      for (const s of segments) {
+        if (!s.origin || !s.destination || !s.date) return "Please fill in every flight's From, To and Date";
+      }
+    }
+    return null;
+  };
+
   const searchFlights = async () => {
-    setError("");
-    if (!destination || !departureDate) {
-      setError("Please fill in the destination and departure date");
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
       return;
     }
+    setError("");
     setLoading(true);
     setOffers(null);
     try {
@@ -47,10 +103,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          origin,
-          destination,
-          departureDate,
-          returnDate: tripType === "Round-trip" ? returnDate : undefined,
+          slices: buildSlices(),
           passengers,
           cabinClass,
         }),
@@ -100,64 +153,119 @@ export default function Home() {
 
       {/* Search card */}
       <div className="mx-4 bg-card border border-cardline rounded-xl2 overflow-hidden relative">
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-          <span className="text-xl">🛫</span>
-          <div className="flex-1">
-            <p className="text-muted text-xs">From</p>
-            <input
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value.toUpperCase())}
-              placeholder="From"
-              className="bg-transparent font-bold text-lg outline-none w-full"
-            />
-          </div>
-        </div>
-
-        <button
-          onClick={swap}
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-bg border border-cardline rounded-full w-11 h-11 flex items-center justify-center"
-        >
-          ↕
-        </button>
-
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-          <span className="text-xl">🛬</span>
-          <div className="flex-1">
-            <p className="text-muted text-xs">To</p>
-            <input
-              value={destination}
-              onChange={(e) => setDestination(e.target.value.toUpperCase())}
-              placeholder="To"
-              className="bg-transparent font-bold text-lg outline-none w-full placeholder-muted"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-          <span className="text-xl">📅</span>
-          <div className="flex-1">
-            <p className="text-muted text-xs">Departure Date</p>
-            <input
-              type="date"
-              value={departureDate}
-              onChange={(e) => setDepartureDate(e.target.value)}
-              className="bg-transparent font-bold text-lg outline-none w-full"
-            />
-          </div>
-        </div>
-
-        {tripType === "Round-trip" && (
-          <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-            <span className="text-xl">📅</span>
-            <div className="flex-1">
-              <p className="text-muted text-xs">Return Date</p>
-              <input
-                type="date"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-                className="bg-transparent font-bold text-lg outline-none w-full"
-              />
+        {tripType !== "Multi-city" ? (
+          <>
+            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
+              <span className="text-xl">🛫</span>
+              <div className="flex-1">
+                <p className="text-muted text-xs">From</p>
+                <input
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value.toUpperCase())}
+                  placeholder="From"
+                  className="bg-transparent font-bold text-lg outline-none w-full"
+                />
+              </div>
             </div>
+
+            <button
+              onClick={swap}
+              className="absolute right-4 top-[52px] -translate-y-1/2 bg-bg border border-cardline rounded-full w-11 h-11 flex items-center justify-center"
+            >
+              ↕
+            </button>
+
+            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
+              <span className="text-xl">🛬</span>
+              <div className="flex-1">
+                <p className="text-muted text-xs">To</p>
+                <input
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value.toUpperCase())}
+                  placeholder="To"
+                  className="bg-transparent font-bold text-lg outline-none w-full placeholder-muted"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
+              <span className="text-xl">📅</span>
+              <div className="flex-1">
+                <p className="text-muted text-xs">Departure Date</p>
+                <input
+                  type="date"
+                  value={departureDate}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  className="bg-transparent font-bold text-lg outline-none w-full"
+                />
+              </div>
+            </div>
+
+            {tripType === "Round-trip" && (
+              <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
+                <span className="text-xl">📅</span>
+                <div className="flex-1">
+                  <p className="text-muted text-xs">Return Date</p>
+                  <input
+                    type="date"
+                    value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    className="bg-transparent font-bold text-lg outline-none w-full"
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="divide-y divide-cardline">
+            {segments.map((seg, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                {segments.length > 2 && (
+                  <button
+                    onClick={() => removeSegment(i)}
+                    className="w-6 h-6 rounded-full border border-cardline flex items-center justify-center text-xs shrink-0"
+                  >
+                    ✕
+                  </button>
+                )}
+                <div className="flex-1">
+                  <p className="text-muted text-xs">From</p>
+                  <input
+                    value={seg.origin}
+                    onChange={(e) => updateSegment(i, "origin", e.target.value.toUpperCase())}
+                    placeholder="..."
+                    className="bg-transparent font-bold outline-none w-full"
+                  />
+                </div>
+                <div className="flex-1 border-l border-cardline pl-3">
+                  <p className="text-muted text-xs">To</p>
+                  <input
+                    value={seg.destination}
+                    onChange={(e) => updateSegment(i, "destination", e.target.value.toUpperCase())}
+                    placeholder="..."
+                    className="bg-transparent font-bold outline-none w-full"
+                  />
+                </div>
+                <div className="flex-1 border-l border-cardline pl-3">
+                  <p className="text-muted text-xs">Date</p>
+                  <input
+                    type="date"
+                    value={seg.date}
+                    onChange={(e) => updateSegment(i, "date", e.target.value)}
+                    className="bg-transparent font-bold outline-none w-full"
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={addSegment}
+              className="w-full flex items-center gap-2 px-4 py-3 text-brand font-semibold"
+            >
+              <span className="w-6 h-6 rounded-full bg-brand text-black flex items-center justify-center text-sm">
+                +
+              </span>
+              Add one more flight
+            </button>
           </div>
         )}
 
@@ -218,17 +326,19 @@ export default function Home() {
           {offers.map((offer) => (
             <div
               key={offer.id}
-              className="bg-card border border-cardline rounded-xl2 px-4 py-4 flex items-center justify-between"
+              className="bg-card border border-cardline rounded-xl2 px-4 py-4"
             >
-              <div>
-                <p className="font-bold">{offer.airline}</p>
-                <p className="text-muted text-sm">
-                  {offer.originAirport} → {offer.destinationAirport} ·{" "}
-                  {offer.stops === 0 ? "Direct" : `${offer.stops} stop(s)`}
-                </p>
+              <p className="font-bold mb-2">{offer.airline}</p>
+              <div className="space-y-1 mb-3">
+                {offer.legs.map((leg, i) => (
+                  <p key={i} className="text-muted text-sm">
+                    {leg.originAirport} → {leg.destinationAirport} ·{" "}
+                    {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
+                  </p>
+                ))}
               </div>
-              <div className="text-right">
-                <p className="text-brand font-bold text-lg mb-1">
+              <div className="flex items-center justify-between">
+                <p className="text-brand font-bold text-lg">
                   {offer.currency} {offer.finalPrice}
                 </p>
                 <button
