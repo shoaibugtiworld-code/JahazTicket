@@ -15,7 +15,7 @@ export default function Home() {
   const [tripType, setTripType] = useState("One-way");
 
   // One-way / Round-trip fields
-  const [origin, setOrigin] = useState("DEA");
+  const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
