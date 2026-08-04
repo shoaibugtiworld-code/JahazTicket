@@ -121,12 +121,15 @@ export default function Payment() {
 
       {/* Sticky bottom price + pay bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-cardline px-4 py-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-1">
           <span className="text-muted text-sm">Total price</span>
           <span className="font-bold text-lg">
             {offer.currency} {offer.finalPrice}
           </span>
         </div>
+        <p className="text-muted text-[11px] mb-3">
+          No extra charges — this is exactly what you'll pay.
+        </p>
         <button
           onClick={pay}
           disabled={status === "processing"}
