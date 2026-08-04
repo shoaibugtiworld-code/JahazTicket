@@ -1,18 +1,36 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Logo from "../components/Logo";
+import StepIndicator from "../components/StepIndicator";
+import CountdownTimer from "../components/CountdownTimer";
+
+const TITLES = ["Mr", "Mrs", "Ms"];
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
 
 export default function Booking() {
   const router = useRouter();
   const [offer, setOffer] = useState(null);
   const [checked, setChecked] = useState(false);
 
-  const [fullName, setFullName] = useState("");
-  const [gender, setGender] = useState("male");
-  const [dob, setDob] = useState("");
-  const [idNumber, setIdNumber] = useState(""); // CNIC or Passport
+  // Contact details
+  const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+
+  // Traveller details
+  const [title, setTitle] = useState("Mr");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [idNumber, setIdNumber] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
+
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -33,13 +51,30 @@ export default function Booking() {
   const submit = (e) => {
     e.preventDefault();
     setError("");
-    if (!fullName || !dob || !idNumber || !email || !phone) {
-      setError("Please fill in all passenger details");
+    if (!mobile || !email) {
+      setError("Please fill in your mobile number and email");
       return;
     }
-    const passenger = { fullName, gender, dob, idNumber, email, phone };
+    if (!firstName || !lastName || !idNumber || !dobDay || !dobMonth || !dobYear) {
+      setError("Please fill in all traveller details");
+      return;
+    }
+
+    const monthIndex = String(MONTHS.indexOf(dobMonth) + 1).padStart(2, "0");
+    const dob = `${dobYear}-${monthIndex}-${String(dobDay).padStart(2, "0")}`;
+    const gender = title === "Mr" ? "male" : "female";
+
+    const passenger = {
+      fullName: `${firstName} ${lastName}`,
+      gender,
+      dob,
+      idNumber,
+      email,
+      phone: mobile,
+    };
+    sessionStorage.setItem("jt_contact", JSON.stringify({ mobile, email }));
     sessionStorage.setItem("jt_passenger", JSON.stringify(passenger));
-    router.push("/payment");
+    router.push("/addons");
   };
 
   if (!checked || !offer) return null;
@@ -53,11 +88,16 @@ export default function Booking() {
         </button>
       </div>
 
-      <h1 className="px-4 text-xl font-bold mb-4">Passenger Details</h1>
+      <div className="flex items-center justify-between">
+        <StepIndicator current="Booking" />
+        <div className="pr-4">
+          <CountdownTimer expiresAt={offer.expiresAt} />
+        </div>
+      </div>
 
       {/* Selected flight summary */}
-      <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 mb-6">
-        <p className="font-bold mb-1">{offer.airline}</p>
+      <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 mb-6 mt-2">
+        <p className="font-bold">{offer.airline}</p>
         {offer.legs.map((leg, i) => (
           <p key={i} className="text-muted text-sm">
             {leg.originAirport} → {leg.destinationAirport} ·{" "}
@@ -69,76 +109,128 @@ export default function Booking() {
         </p>
       </div>
 
-      <form onSubmit={submit} className="px-4 space-y-3">
+      <form onSubmit={submit} className="px-4 space-y-6">
+        {/* Contact Details */}
         <div>
-          <label className="text-muted text-xs">Full Name (as on CNIC/Passport)</label>
-          <input
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-          />
-        </div>
-
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className="text-muted text-xs">Gender</label>
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-            >
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="text-muted text-xs">Date of Birth</label>
-            <input
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-            />
+          <p className="font-bold mb-1">Contact Details</p>
+          <p className="text-muted text-xs mb-3">Your e-ticket and trip updates will be sent here.</p>
+          <div className="space-y-3">
+            <div>
+              <label className="text-muted text-xs">Mobile Number</label>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="bg-card border border-cardline rounded-xl px-3 py-3 text-muted">+92</span>
+                <input
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  placeholder="3xxxxxxxxx"
+                  className="flex-1 bg-card border border-cardline rounded-xl px-4 py-3 outline-none focus:border-brand"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-muted text-xs">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              />
+            </div>
           </div>
         </div>
 
+        {/* Traveller Details */}
         <div>
-          <label className="text-muted text-xs">CNIC or Passport Number</label>
-          <input
-            value={idNumber}
-            onChange={(e) => setIdNumber(e.target.value)}
-            className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-          />
-        </div>
+          <p className="font-bold mb-1">Traveller Details — Adult 1</p>
+          <p className="text-muted text-xs mb-3">Enter the name exactly as it appears on CNIC/Passport.</p>
 
-        <div>
-          <label className="text-muted text-xs">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-          />
-        </div>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <div className="w-24">
+                <label className="text-muted text-xs">Title</label>
+                <select
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full bg-card border border-cardline rounded-xl px-3 py-3 mt-1 outline-none focus:border-brand"
+                >
+                  {TITLES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="text-muted text-xs">First Name</label>
+                <input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+                />
+              </div>
+            </div>
 
-        <div>
-          <label className="text-muted text-xs">Phone Number</label>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="03xxxxxxxxx"
-            className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-          />
+            <div>
+              <label className="text-muted text-xs">Last Name</label>
+              <input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              />
+            </div>
+
+            <div>
+              <label className="text-muted text-xs">CNIC or Passport Number</label>
+              <input
+                value={idNumber}
+                onChange={(e) => setIdNumber(e.target.value)}
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              />
+            </div>
+
+            <div>
+              <label className="text-muted text-xs">Date of Birth</label>
+              <div className="flex gap-2 mt-1">
+                <select
+                  value={dobDay}
+                  onChange={(e) => setDobDay(e.target.value)}
+                  className="flex-1 bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Day</option>
+                  {DAYS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  value={dobMonth}
+                  onChange={(e) => setDobMonth(e.target.value)}
+                  className="flex-[1.5] bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Month</option>
+                  {MONTHS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={dobYear}
+                  onChange={(e) => setDobYear(e.target.value)}
+                  className="flex-1 bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Year</option>
+                  {YEARS.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button
           type="submit"
-          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg mt-4"
+          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg"
         >
-          Continue to Payment
+          Review Details — {offer.currency} {offer.finalPrice}
         </button>
       </form>
     </div>
