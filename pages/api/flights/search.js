@@ -77,6 +77,7 @@ export default async function handler(req, res) {
       currency: offer.total_currency,
       basePrice: offer.total_amount, // internal only — do not send to frontend in production
       finalPrice: applyMarkup(offer.total_amount),
+      expiresAt: offer.expires_at,
       passengerIds: (offer.passengers || []).map((p) => p.id),
       legs: (offer.slices || []).map((slice) => ({
         originAirport: slice.origin?.iata_code,
