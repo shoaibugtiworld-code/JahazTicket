@@ -2,12 +2,13 @@
 // This actually purchases the ticket from Duffel using your Duffel account balance,
 // and returns the booking reference + ticket data needed to generate the PDF.
 //
-// IMPORTANT: Duffel needs your Duffel account to have enough balance to cover the
-// base fare (not the marked-up price) — top up your Duffel balance from their dashboard.
-// The customer's payment (via JazzCash/EasyPaisa/card) goes to YOUR bank account separately;
-// "arranged_externally" tells Duffel you've already collected the money yourself.
+// IMPORTANT: "balance" payment type means Duffel charges YOUR Duffel account balance
+// (which you top up in advance) for the base fare. The customer's payment
+// (via JazzCash/EasyPaisa/card) goes to YOUR bank account separately — the difference
+// (your markup) is your profit. Duffel does not handle the customer's payment at all.
 
 const DUFFEL_ORDERS_URL = "https://api.duffel.com/air/orders";
+const DUFFEL_OFFERS_URL = "https://api.duffel.com/air/offers";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -16,7 +17,9 @@ export default async function handler(req, res) {
 
   const { offerId, passengerId, passenger } = req.body;
   if (!offerId || !passengerId || !passenger) {
-    return res.status(400).json({ error: "offerId, passengerId and passenger details are required" });
+    return res.status(400).json({
+      error: "offerId, passengerId and passenger are all required",
+    });
   }
 
   const duffelKey = process.env.DUFFEL_API_KEY;
@@ -24,22 +27,50 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "DUFFEL_API_KEY is not set." });
   }
 
+  // Fetch the offer fresh from Duffel ourselves — never trust a currency/amount sent
+  // from the browser. This is also what the "balance" payment must match exactly,
+  // and it keeps our base price (and therefore our markup) from ever reaching the client.
+  let totalCurrency;
+  let totalAmount;
+  try {
+    const offerRes = await fetch(`${DUFFEL_OFFERS_URL}/${offerId}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${duffelKey}`,
+        "Duffel-Version": "v2",
+      },
+    });
+    const offerData = await offerRes.json();
+    if (!offerRes.ok) {
+      return res.status(offerRes.status).json({ error: "Couldn't reload offer from Duffel", details: offerData });
+    }
+    totalCurrency = offerData.data?.total_currency;
+    totalAmount = offerData.data?.total_amount;
+    if (!totalCurrency || !totalAmount) {
+      return res.status(400).json({ error: "This offer has expired — please search again." });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: "Server error reloading offer", details: err.message });
+  }
+
   const [firstName, ...rest] = passenger.fullName.trim().split(" ");
   const lastName = rest.join(" ") || firstName;
+  const title = passenger.gender === "female" ? "mrs" : passenger.gender === "male" ? "mr" : "ms";
 
   const payload = {
     data: {
-      type: "instant",
       selected_offers: [offerId],
       payments: [
         {
-          type: "arranged_externally",
+          type: "balance",
+          currency: totalCurrency, // must match the offer's total_currency exactly
+          amount: totalAmount, // must match the offer's total_amount exactly (base fare, not your marked-up price)
         },
       ],
       passengers: [
         {
           id: passengerId, // must match the offer's passenger id from search
-          title: passenger.gender === "female" ? "ms" : "mr",
+          title,
           gender: passenger.gender === "female" ? "f" : "m",
           given_name: firstName,
           family_name: lastName,
