@@ -27,21 +27,25 @@ function parseMRZ(text) {
 }
 
 function findCNIC(text) {
-  const match = text.match(/\d{5}-?\d{7}-?\d{1}/);
+  const compact = text.replace(/\s+/g, "");
+  const match = text.match(/\d{5}-?\d{7}-?\d{1}/) || compact.match(/\d{5}-?\d{7}-?\d{1}/);
   if (!match) return null;
   const digits = match[0].replace(/-/g, "");
   return `${digits.slice(0, 5)}-${digits.slice(5, 12)}-${digits.slice(12, 13)}`;
 }
 
 function findLoosePassportNumber(text) {
-  const match = text.match(/\b[A-Z]{1,2}\d{6,8}\b/);
+  const compact = text.replace(/\s+/g, "");
+  const match = text.match(/\b[A-Z]{1,2}\d{6,8}\b/) || compact.match(/[A-Z]{1,2}\d{6,8}/);
   return match ? match[0] : null;
 }
 
 export default function DocumentScanner({ mode, onResult }) {
   const fileInputRef = useRef(null);
   const [status, setStatus] = useState("idle"); // idle | scanning | done | error
+  const [progress, setProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [rawText, setRawText] = useState("");
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -49,11 +53,34 @@ export default function DocumentScanner({ mode, onResult }) {
 
     setPreviewUrl(URL.createObjectURL(file));
     setStatus("scanning");
+    setProgress(0);
+    setRawText("");
 
     try {
       const Tesseract = (await import("tesseract.js")).default;
-      const { data } = await Tesseract.recognize(file, "eng");
-      const text = data.text || "";
+
+      const recognizePromise = Tesseract.recognize(file, "eng", {
+        logger: (m) => {
+          if (m.status === "recognizing text" && typeof m.progress === "number") {
+            setProgress(Math.round(m.progress * 100));
+          }
+        },
+      });
+
+      // Weak connections can hang on the first-time language-data download —
+      // never leave the user staring at "Scanning..." forever.
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 30000)
+      );
+
+      const { data } = await Promise.race([recognizePromise, timeoutPromise]);
+      const text = (data.text || "").trim();
+      setRawText(text);
+
+      if (!text) {
+        setStatus("error");
+        return;
+      }
 
       if (mode === "cnic") {
         const cnic = findCNIC(text);
@@ -104,15 +131,34 @@ export default function DocumentScanner({ mode, onResult }) {
       </button>
 
       {previewUrl && status !== "idle" && (
-        <div className="flex items-center gap-2 mt-2 bg-card border border-cardline rounded-lg px-3 py-2">
-          <img src={previewUrl} alt="Scanned document" className="w-10 h-10 object-cover rounded" />
-          <p className="text-xs flex-1">
-            {status === "scanning" && <span className="text-muted">Reading document...</span>}
-            {status === "done" && <span className="text-brand">Number filled in automatically — please double-check it.</span>}
-            {status === "error" && (
-              <span className="text-red-400">Couldn't read it clearly — please type the number manually.</span>
-            )}
-          </p>
+        <div className="mt-2 bg-card border border-cardline rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2">
+            <img src={previewUrl} alt="Scanned document" className="w-10 h-10 object-cover rounded" />
+            <p className="text-xs flex-1">
+              {status === "scanning" && (
+                <span className="text-muted">Reading document... {progress > 0 ? `${progress}%` : ""}</span>
+              )}
+              {status === "done" && (
+                <span className="text-brand">Number filled in automatically — please double-check it.</span>
+              )}
+              {status === "error" && (
+                <span className="text-red-400">Couldn't detect the number automatically.</span>
+              )}
+            </p>
+          </div>
+
+          {status === "error" && rawText && (
+            <div className="mt-2 pt-2 border-t border-cardline">
+              <p className="text-muted text-[11px] mb-1">Here's what we could read from the photo — find and type the number manually:</p>
+              <p className="text-[11px] text-white/80 font-mono whitespace-pre-wrap break-all">{rawText}</p>
+            </div>
+          )}
+          {status === "error" && !rawText && (
+            <p className="text-muted text-[11px] mt-1">
+              No text was detected at all — try better lighting, hold the document flat, and make sure
+              it fills the frame, or just type the number manually.
+            </p>
+          )}
         </div>
       )}
     </div>
