@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import Logo from "../components/Logo";
 import StepIndicator from "../components/StepIndicator";
 import CountdownTimer from "../components/CountdownTimer";
+import DocumentScanner from "../components/DocumentScanner";
 import { COUNTRIES } from "../lib/countries";
+import { PHONE_CODES } from "../lib/phoneCodes";
 
 const TITLES = ["Mr", "Mrs", "Ms"];
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -21,6 +23,7 @@ export default function Booking() {
   const [checked, setChecked] = useState(false);
 
   // Contact details
+  const [phoneCode, setPhoneCode] = useState("+92");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
 
@@ -32,6 +35,7 @@ export default function Booking() {
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear, setDobYear] = useState("");
   const [nationality, setNationality] = useState("PK");
+  const [cnic, setCnic] = useState("");
   const [passportNumber, setPassportNumber] = useState("");
   const [passportExpiryDay, setPassportExpiryDay] = useState("");
   const [passportExpiryMonth, setPassportExpiryMonth] = useState("");
@@ -53,6 +57,24 @@ export default function Booking() {
     setOffer(JSON.parse(stored));
     setChecked(true);
   }, [router]);
+
+  const applyPassportScan = (result) => {
+    if (result.passportNumber) setPassportNumber(result.passportNumber);
+    if (result.nationality) {
+      const match = COUNTRIES.find((c) => c.code === result.nationality || c.code === result.nationality.slice(0, 2));
+      if (match) setNationality(match.code);
+    }
+    if (result.passportExpiry) {
+      const [y, m, d] = result.passportExpiry.split("-");
+      setPassportExpiryYear(y);
+      setPassportExpiryMonth(MONTHS[parseInt(m, 10) - 1]);
+      setPassportExpiryDay(String(parseInt(d, 10)));
+    }
+  };
+
+  const applyCnicScan = (result) => {
+    if (result.cnic) setCnic(result.cnic);
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -90,12 +112,13 @@ export default function Booking() {
       gender,
       dob,
       nationality,
+      cnic,
       passportNumber,
       passportExpiry,
       email,
-      phone: mobile,
+      phone: `${phoneCode}${mobile}`,
     };
-    sessionStorage.setItem("jt_contact", JSON.stringify({ mobile, email }));
+    sessionStorage.setItem("jt_contact", JSON.stringify({ mobile: `${phoneCode}${mobile}`, email }));
     sessionStorage.setItem("jt_passenger", JSON.stringify(passenger));
     router.push("/addons");
   };
@@ -142,7 +165,17 @@ export default function Booking() {
             <div>
               <label className="text-muted text-xs">Mobile Number</label>
               <div className="flex items-center gap-2 mt-1">
-                <span className="bg-card border border-cardline rounded-xl px-3 py-3 text-muted">+92</span>
+                <select
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  className="bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand max-w-[110px]"
+                >
+                  {PHONE_CODES.map((p) => (
+                    <option key={p.code} value={p.dial}>
+                      {p.dial} {p.name}
+                    </option>
+                  ))}
+                </select>
                 <input
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
@@ -256,6 +289,17 @@ export default function Booking() {
             </div>
 
             <div>
+              <label className="text-muted text-xs">CNIC Number (for domestic Pakistan travel)</label>
+              <input
+                value={cnic}
+                onChange={(e) => setCnic(e.target.value)}
+                placeholder="e.g. 12345-1234567-1"
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              />
+              <DocumentScanner mode="cnic" onResult={applyCnicScan} />
+            </div>
+
+            <div>
               <label className="text-muted text-xs">Passport Number</label>
               <input
                 value={passportNumber}
@@ -263,6 +307,11 @@ export default function Booking() {
                 placeholder="e.g. AB1234567"
                 className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
               />
+              <DocumentScanner mode="passport" onResult={applyPassportScan} />
+              <p className="text-muted text-[11px] mt-1">
+                Scanning also auto-fills nationality and expiry date if your passport's machine-readable
+                zone is captured clearly.
+              </p>
             </div>
 
             <div>
