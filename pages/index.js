@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Logo from "../components/Logo";
 import Footer from "../components/Footer";
+import AirportAutocomplete from "../components/AirportAutocomplete";
 
 const TRIP_TYPES = ["One-way", "Round-trip", "Multi-city"];
 
 function emptySegment() {
-  return { origin: "", destination: "", date: "" };
+  return { origin: null, destination: null, date: "" };
 }
 
 export default function Home() {
@@ -14,9 +15,9 @@ export default function Home() {
   const [checkedSession, setCheckedSession] = useState(false);
   const [tripType, setTripType] = useState("One-way");
 
-  // One-way / Round-trip fields
-  const [origin, setOrigin] = useState("");
-  const [destination, setDestination] = useState("");
+  // One-way / Round-trip fields — each holds { iataCode, label } or null
+  const [origin, setOrigin] = useState(null);
+  const [destination, setDestination] = useState(null);
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
 
@@ -65,16 +66,20 @@ export default function Home() {
 
   const buildSlices = () => {
     if (tripType === "One-way") {
-      return [{ origin, destination, date: departureDate }];
+      return [{ origin: origin?.iataCode, destination: destination?.iataCode, date: departureDate }];
     }
     if (tripType === "Round-trip") {
       return [
-        { origin, destination, date: departureDate },
-        { origin: destination, destination: origin, date: returnDate },
+        { origin: origin?.iataCode, destination: destination?.iataCode, date: departureDate },
+        { origin: destination?.iataCode, destination: origin?.iataCode, date: returnDate },
       ];
     }
     // Multi-city
-    return segments.map((s) => ({ origin: s.origin, destination: s.destination, date: s.date }));
+    return segments.map((s) => ({
+      origin: s.origin?.iataCode,
+      destination: s.destination?.iataCode,
+      date: s.date,
+    }));
   };
 
   const buildPassengers = () => {
@@ -172,12 +177,12 @@ export default function Home() {
             <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
               <span className="text-xl">🛫</span>
               <div className="flex-1">
-                <p className="text-muted text-xs">From</p>
-                <input
+                <AirportAutocomplete
+                  label="From"
                   value={origin}
-                  onChange={(e) => setOrigin(e.target.value.toUpperCase())}
-                  placeholder="From"
-                  className="bg-transparent font-bold text-lg outline-none w-full"
+                  onChange={setOrigin}
+                  placeholder="City or airport"
+                  compact
                 />
               </div>
             </div>
@@ -192,12 +197,12 @@ export default function Home() {
             <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
               <span className="text-xl">🛬</span>
               <div className="flex-1">
-                <p className="text-muted text-xs">To</p>
-                <input
+                <AirportAutocomplete
+                  label="To"
                   value={destination}
-                  onChange={(e) => setDestination(e.target.value.toUpperCase())}
-                  placeholder="To"
-                  className="bg-transparent font-bold text-lg outline-none w-full placeholder-muted"
+                  onChange={setDestination}
+                  placeholder="City or airport"
+                  compact
                 />
               </div>
             </div>
@@ -243,21 +248,21 @@ export default function Home() {
                   </button>
                 )}
                 <div className="flex-1">
-                  <p className="text-muted text-xs">From</p>
-                  <input
+                  <AirportAutocomplete
+                    label="From"
                     value={seg.origin}
-                    onChange={(e) => updateSegment(i, "origin", e.target.value.toUpperCase())}
+                    onChange={(place) => updateSegment(i, "origin", place)}
                     placeholder="..."
-                    className="bg-transparent font-bold outline-none w-full"
+                    compact
                   />
                 </div>
                 <div className="flex-1 border-l border-cardline pl-3">
-                  <p className="text-muted text-xs">To</p>
-                  <input
+                  <AirportAutocomplete
+                    label="To"
                     value={seg.destination}
-                    onChange={(e) => updateSegment(i, "destination", e.target.value.toUpperCase())}
+                    onChange={(place) => updateSegment(i, "destination", place)}
                     placeholder="..."
-                    className="bg-transparent font-bold outline-none w-full"
+                    compact
                   />
                 </div>
                 <div className="flex-1 border-l border-cardline pl-3">
