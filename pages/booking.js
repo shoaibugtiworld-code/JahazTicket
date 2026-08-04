@@ -107,6 +107,7 @@ export default function Booking() {
         <p className="text-brand font-bold text-lg mt-2">
           {offer.currency} {offer.finalPrice}
         </p>
+        <p className="text-muted text-[11px]">This price is final — it will not change till payment.</p>
       </div>
 
       <form onSubmit={submit} className="px-4 space-y-6">
