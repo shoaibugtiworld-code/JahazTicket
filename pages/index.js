@@ -15,7 +15,7 @@ export default function Home() {
   const [tripType, setTripType] = useState("One-way");
 
   // One-way / Round-trip fields
-  const [origin, setOrigin] = useState("");
+  const [origin, setOrigin] = useState("DEA");
   const [destination, setDestination] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
@@ -340,9 +340,12 @@ export default function Home() {
                 ))}
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-brand font-bold text-lg">
-                  {offer.currency} {offer.finalPrice}
-                </p>
+                <div>
+                  <p className="text-brand font-bold text-lg">
+                    {offer.currency} {offer.finalPrice}
+                  </p>
+                  <p className="text-muted text-[11px]">All-inclusive · no hidden charges later</p>
+                </div>
                 <button
                   onClick={() => {
                     sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
