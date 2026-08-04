@@ -5,6 +5,25 @@
 const DUFFEL_API_URL = "https://api.duffel.com/air/offer_requests";
 const MARKUP_PERCENT = Number(process.env.MARKUP_PERCENT || 10); // 10%
 
+// Minimal country -> currency map for common markets. Falls back to USD.
+const COUNTRY_CURRENCY = {
+  PK: "PKR", US: "USD", GB: "GBP", AE: "AED", SA: "SAR",
+  IN: "INR", CA: "CAD", AU: "AUD", DE: "EUR", FR: "EUR",
+  QA: "QAR", OM: "OMR", BH: "BHD", KW: "KWD", TR: "TRY",
+  CN: "CNY", TH: "THB", MY: "MYR",
+};
+
+async function getExchangeRate(fromCurrency, toCurrency) {
+  if (fromCurrency === toCurrency) return 1;
+  try {
+    const res = await fetch(`https://open.er-api.com/v6/latest/${fromCurrency}`);
+    const data = await res.json();
+    return data?.rates?.[toCurrency] || null;
+  } catch {
+    return null;
+  }
+}
+
 function applyMarkup(amount) {
   const base = parseFloat(amount);
   const withMarkup = base * (1 + MARKUP_PERCENT / 100);
@@ -70,23 +89,39 @@ export default async function handler(req, res) {
       });
     }
 
-    const offers = (data.data?.offers || []).map((offer) => ({
-      id: offer.id,
-      airline: offer.owner?.name,
-      airlineLogo: offer.owner?.logo_symbol_url,
-      currency: offer.total_currency,
-      basePrice: offer.total_amount, // internal only — do not send to frontend in production
-      finalPrice: applyMarkup(offer.total_amount),
-      expiresAt: offer.expires_at,
-      passengerIds: (offer.passengers || []).map((p) => p.id),
-      legs: (offer.slices || []).map((slice) => ({
-        originAirport: slice.origin?.iata_code,
-        destinationAirport: slice.destination?.iata_code,
-        departureDate: slice.segments?.[0]?.departing_at,
-        arrivalDate: slice.segments?.[slice.segments.length - 1]?.arriving_at,
-        stops: (slice.segments?.length || 1) - 1,
-      })),
-    }));
+    const rawOffers = data.data?.offers || [];
+
+    // Detect the visitor's country from Vercel's edge geolocation headers, map it to a
+    // currency, and convert once — the same converted+marked-up price is then shown
+    // through the whole checkout, it never gets recalculated later.
+    const countryCode = req.headers["x-vercel-ip-country"] || "";
+    const targetCurrency = COUNTRY_CURRENCY[countryCode] || null;
+    const sourceCurrency = rawOffers[0]?.total_currency;
+    const rate =
+      targetCurrency && sourceCurrency ? await getExchangeRate(sourceCurrency, targetCurrency) : null;
+    const displayCurrency = rate ? targetCurrency : sourceCurrency;
+
+    const offers = rawOffers.map((offer) => {
+      const amountInSourceCurrency = parseFloat(offer.total_amount);
+      const amountInDisplayCurrency = rate ? amountInSourceCurrency * rate : amountInSourceCurrency;
+      return {
+        id: offer.id,
+        airline: offer.owner?.name,
+        airlineLogo: offer.owner?.logo_symbol_url,
+        currency: displayCurrency,
+        basePrice: offer.total_amount, // internal only — do not send to frontend in production
+        finalPrice: applyMarkup(amountInDisplayCurrency),
+        expiresAt: offer.expires_at,
+        passengerIds: (offer.passengers || []).map((p) => p.id),
+        legs: (offer.slices || []).map((slice) => ({
+          originAirport: slice.origin?.iata_code,
+          destinationAirport: slice.destination?.iata_code,
+          departureDate: slice.segments?.[0]?.departing_at,
+          arrivalDate: slice.segments?.[slice.segments.length - 1]?.arriving_at,
+          stops: (slice.segments?.length || 1) - 1,
+        })),
+      };
+    });
 
     // Sort cheapest-first so the lowest final price is always shown on top.
     offers.sort((a, b) => parseFloat(a.finalPrice) - parseFloat(b.finalPrice));
