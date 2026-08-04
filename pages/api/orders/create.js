@@ -53,9 +53,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server error reloading offer", details: err.message });
   }
 
-  const [firstName, ...rest] = passenger.fullName.trim().split(" ");
-  const lastName = rest.join(" ") || firstName;
-  const title = passenger.gender === "female" ? "mrs" : passenger.gender === "male" ? "mr" : "ms";
+  const title = passenger.title ? passenger.title.toLowerCase() : (passenger.gender === "female" ? "mrs" : "mr");
 
   const payload = {
     data: {
@@ -72,11 +70,19 @@ export default async function handler(req, res) {
           id: passengerId, // must match the offer's passenger id from search
           title,
           gender: passenger.gender === "female" ? "f" : "m",
-          given_name: firstName,
-          family_name: lastName,
+          given_name: passenger.givenName,
+          family_name: passenger.surname,
           born_on: passenger.dob,
           email: passenger.email,
           phone_number: passenger.phone,
+          identity_documents: [
+            {
+              type: "passport",
+              unique_identifier: passenger.passportNumber,
+              expires_on: passenger.passportExpiry,
+              issuing_country_code: passenger.nationality,
+            },
+          ],
         },
       ],
     },
