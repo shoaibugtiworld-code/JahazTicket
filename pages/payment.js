@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Logo from "../components/Logo";
+import StepIndicator from "../components/StepIndicator";
+import CountdownTimer from "../components/CountdownTimer";
 
 const METHODS = [
   { id: "card", label: "Debit / Credit Card", sub: "Visa · Mastercard · all Pakistani & international cards" },
@@ -57,9 +59,16 @@ export default function Payment() {
   return (
     <div className="min-h-screen bg-bg text-white pb-28">
       <div className="flex items-center justify-between px-4 py-5">
-        <button onClick={() => router.push("/booking")} className="text-xl">←</button>
+        <button onClick={() => router.push("/addons")} className="text-xl">←</button>
         <p className="font-bold">Payment</p>
         <Logo />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <StepIndicator current="Payment" />
+        <div className="pr-4">
+          <CountdownTimer expiresAt={offer.expiresAt} />
+        </div>
       </div>
 
       {/* Review summary */}
