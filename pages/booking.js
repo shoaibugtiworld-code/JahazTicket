@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Logo from "../components/Logo";
 import StepIndicator from "../components/StepIndicator";
 import CountdownTimer from "../components/CountdownTimer";
+import { COUNTRIES } from "../lib/countries";
 
 const TITLES = ["Mr", "Mrs", "Ms"];
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -11,7 +12,8 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ];
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
+const DOB_YEARS = Array.from({ length: 100 }, (_, i) => CURRENT_YEAR - i);
+const EXPIRY_YEARS = Array.from({ length: 15 }, (_, i) => CURRENT_YEAR + i);
 
 export default function Booking() {
   const router = useRouter();
@@ -24,12 +26,16 @@ export default function Booking() {
 
   // Traveller details
   const [title, setTitle] = useState("Mr");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [idNumber, setIdNumber] = useState("");
+  const [givenName, setGivenName] = useState("");
+  const [surname, setSurname] = useState("");
   const [dobDay, setDobDay] = useState("");
   const [dobMonth, setDobMonth] = useState("");
   const [dobYear, setDobYear] = useState("");
+  const [nationality, setNationality] = useState("PK");
+  const [passportNumber, setPassportNumber] = useState("");
+  const [passportExpiryDay, setPassportExpiryDay] = useState("");
+  const [passportExpiryMonth, setPassportExpiryMonth] = useState("");
+  const [passportExpiryYear, setPassportExpiryYear] = useState("");
 
   const [error, setError] = useState("");
 
@@ -55,20 +61,37 @@ export default function Booking() {
       setError("Please fill in your mobile number and email");
       return;
     }
-    if (!firstName || !lastName || !idNumber || !dobDay || !dobMonth || !dobYear) {
-      setError("Please fill in all traveller details");
+    if (!givenName || !surname || !dobDay || !dobMonth || !dobYear) {
+      setError("Please fill in name and date of birth");
+      return;
+    }
+    if (!nationality || !passportNumber || !passportExpiryDay || !passportExpiryMonth || !passportExpiryYear) {
+      setError("Nationality, passport number and passport expiry are required — even for domestic travel");
       return;
     }
 
-    const monthIndex = String(MONTHS.indexOf(dobMonth) + 1).padStart(2, "0");
-    const dob = `${dobYear}-${monthIndex}-${String(dobDay).padStart(2, "0")}`;
+    const dobMonthIndex = String(MONTHS.indexOf(dobMonth) + 1).padStart(2, "0");
+    const dob = `${dobYear}-${dobMonthIndex}-${String(dobDay).padStart(2, "0")}`;
+
+    const expiryMonthIndex = String(MONTHS.indexOf(passportExpiryMonth) + 1).padStart(2, "0");
+    const passportExpiry = `${passportExpiryYear}-${expiryMonthIndex}-${String(passportExpiryDay).padStart(2, "0")}`;
+
+    if (new Date(passportExpiry) <= new Date()) {
+      setError("Passport has expired — please use a valid, non-expired passport");
+      return;
+    }
+
     const gender = title === "Mr" ? "male" : "female";
 
     const passenger = {
-      fullName: `${firstName} ${lastName}`,
+      title,
+      givenName,
+      surname,
       gender,
       dob,
-      idNumber,
+      nationality,
+      passportNumber,
+      passportExpiry,
       email,
       phone: mobile,
     };
@@ -143,7 +166,10 @@ export default function Booking() {
         {/* Traveller Details */}
         <div>
           <p className="font-bold mb-1">Traveller Details — Adult 1</p>
-          <p className="text-muted text-xs mb-3">Enter the name exactly as it appears on CNIC/Passport.</p>
+          <p className="text-muted text-xs mb-3">
+            Enter details exactly as they appear on your passport/CNIC. Required for both domestic and
+            international travel.
+          </p>
 
           <div className="space-y-3">
             <div className="flex gap-3">
@@ -160,29 +186,22 @@ export default function Booking() {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="text-muted text-xs">First Name</label>
+                <label className="text-muted text-xs">Given Name(s)</label>
                 <input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  value={givenName}
+                  onChange={(e) => setGivenName(e.target.value)}
+                  placeholder="As on passport/CNIC"
                   className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-muted text-xs">Last Name</label>
+              <label className="text-muted text-xs">Surname</label>
               <input
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-              />
-            </div>
-
-            <div>
-              <label className="text-muted text-xs">CNIC or Passport Number</label>
-              <input
-                value={idNumber}
-                onChange={(e) => setIdNumber(e.target.value)}
+                value={surname}
+                onChange={(e) => setSurname(e.target.value)}
+                placeholder="As on passport/CNIC"
                 className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
               />
             </div>
@@ -216,11 +235,73 @@ export default function Booking() {
                   className="flex-1 bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
                 >
                   <option value="">Year</option>
-                  {YEARS.map((y) => (
+                  {DOB_YEARS.map((y) => (
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="text-muted text-xs">Nationality</label>
+              <select
+                value={nationality}
+                onChange={(e) => setNationality(e.target.value)}
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              >
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-muted text-xs">Passport Number</label>
+              <input
+                value={passportNumber}
+                onChange={(e) => setPassportNumber(e.target.value.toUpperCase())}
+                placeholder="e.g. AB1234567"
+                className="w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
+              />
+            </div>
+
+            <div>
+              <label className="text-muted text-xs">Passport Expiry Date</label>
+              <div className="flex gap-2 mt-1">
+                <select
+                  value={passportExpiryDay}
+                  onChange={(e) => setPassportExpiryDay(e.target.value)}
+                  className="flex-1 bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Day</option>
+                  {DAYS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <select
+                  value={passportExpiryMonth}
+                  onChange={(e) => setPassportExpiryMonth(e.target.value)}
+                  className="flex-[1.5] bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Month</option>
+                  {MONTHS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={passportExpiryYear}
+                  onChange={(e) => setPassportExpiryYear(e.target.value)}
+                  className="flex-1 bg-card border border-cardline rounded-xl px-2 py-3 outline-none focus:border-brand"
+                >
+                  <option value="">Year</option>
+                  {EXPIRY_YEARS.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-muted text-[11px] mt-1">
+                Must be valid (not expired) — many countries also require 6 months validity beyond travel date.
+              </p>
             </div>
           </div>
         </div>
