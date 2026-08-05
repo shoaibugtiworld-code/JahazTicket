@@ -12,6 +12,7 @@ export default function AirportAutocomplete({
   const [loading, setLoading] = useState(false);
   const wrapperRef = useRef(null);
 
+  // Outside click handler
   useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -22,6 +23,7 @@ export default function AirportAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Sync with external value
   useEffect(() => {
     if (value?.label) {
       setInputValue(value.label);
@@ -30,6 +32,7 @@ export default function AirportAutocomplete({
     }
   }, [value]);
 
+  // Fetch airports (your original endpoint)
   const fetchAirports = async (query) => {
     if (query.length < 2) {
       setSuggestions([]);
@@ -37,11 +40,13 @@ export default function AirportAutocomplete({
     }
     setLoading(true);
     try {
-      // CORRECT endpoint — matches your actual API
-      const res = await fetch(`/api/places/suggestions?q=${encodeURIComponent(query)}`);
+      // ✅ IMPORTANT: Use YOUR actual API endpoint
+      // This is the original one you had before:
+      const res = await fetch(`/api/airports?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setSuggestions(data);
     } catch (e) {
+      console.error("Airport fetch error:", e);
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -58,13 +63,14 @@ export default function AirportAutocomplete({
       setSuggestions([]);
       setShowSuggestions(false);
     }
+    // Clear selection if input is empty
     if (!val) onChange(null);
   };
 
   const handleSelect = (airport) => {
     setInputValue(airport.label);
     setShowSuggestions(false);
-    onChange(airport);
+    onChange(airport); // this sets origin/destination in Home
   };
 
   return (
