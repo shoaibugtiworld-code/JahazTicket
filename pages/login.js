@@ -19,21 +19,13 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setSent(false);
-
     if (!supabase) {
-      setError("Supabase isn't configured. Check environment variables.");
+      setError("Supabase isn't configured.");
       return;
     }
-
     setLoading(true);
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        // emailRedirectTo: `${window.location.origin}/callback`,
-      },
-    });
+    const { error: authError } = await supabase.auth.signInWithOtp({ email });
     setLoading(false);
-
     if (authError) {
       setError(authError.message);
     } else {
@@ -43,33 +35,34 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-jtWhite flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-8">
+    <div style={{ minHeight: "100vh", backgroundColor: "#F8FAFC", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+      <div style={{ maxWidth: "448px", width: "100%" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "32px" }}>
           <Logo size={64} withText={true} textClass="text-2xl" />
         </div>
 
-        <div className="bg-white rounded-2xl border border-jtBorder p-8 shadow-xl">
-          <h2 className="text-2xl font-bold text-jtNavy text-center mb-2">
+        <div style={{ backgroundColor: "#FFFFFF", borderRadius: "16px", border: "1px solid #E2E8F0", padding: "32px", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "bold", color: "#0B2545", textAlign: "center", marginBottom: "8px" }}>
             Welcome Back
           </h2>
-          <p className="text-jtMuted text-center mb-6">
+          <p style={{ color: "#64748B", textAlign: "center", marginBottom: "24px" }}>
             Sign in to manage your bookings
           </p>
 
           <button
             onClick={continueAsGuest}
-            className="w-full btn-primary flex items-center justify-center gap-2 mb-4"
+            className="btn-primary"
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "16px" }}
           >
             Continue as Guest
           </button>
 
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-jtBorder"></div>
+          <div style={{ position: "relative", margin: "24px 0" }}>
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center" }}>
+              <div style={{ width: "100%", borderTop: "1px solid #E2E8F0" }}></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-jtMuted">or</span>
+            <div style={{ position: "relative", display: "flex", justifyContent: "center", fontSize: "14px" }}>
+              <span style={{ padding: "0 8px", backgroundColor: "#FFFFFF", color: "#64748B" }}>or</span>
             </div>
           </div>
 
@@ -80,16 +73,27 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border border-jtBorder rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan"
               disabled={loading || sent}
+              style={{
+                width: "100%",
+                border: "1px solid #E2E8F0",
+                borderRadius: "12px",
+                padding: "12px 16px",
+                marginBottom: "16px",
+                backgroundColor: "#FFFFFF",
+                color: "#1E293B",
+                outline: "none",
+              }}
+              onFocus={(e) => e.target.style.borderColor = "#00A8E8"}
+              onBlur={(e) => e.target.style.borderColor = "#E2E8F0"}
             />
 
             {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
+              <p style={{ color: "#EF4444", fontSize: "14px", marginBottom: "16px" }}>{error}</p>
             )}
 
             {sent && (
-              <p className="text-green-600 text-sm mb-4">
+              <p style={{ color: "#22C55E", fontSize: "14px", marginBottom: "16px" }}>
                 ✅ Magic link sent! Check your email to log in.
               </p>
             )}
@@ -97,13 +101,14 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading || sent}
-              className="w-full btn-secondary disabled:opacity-60 disabled:cursor-not-allowed"
+              className="btn-secondary"
+              style={{ width: "100%", opacity: (loading || sent) ? 0.6 : 1, cursor: (loading || sent) ? "not-allowed" : "pointer" }}
             >
               {loading ? "Sending..." : "Send Magic Link"}
             </button>
           </form>
 
-          <p className="text-xs text-jtMuted text-center mt-4">
+          <p style={{ fontSize: "12px", color: "#64748B", textAlign: "center", marginTop: "16px" }}>
             By continuing, you agree to our Terms & Privacy Policy.
           </p>
         </div>
