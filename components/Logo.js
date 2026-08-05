@@ -1,4 +1,3 @@
-// components/Logo.js
 import React from "react";
 
 /**
@@ -15,12 +14,10 @@ export default function Logo({ size = "default", withText = false, textClass = "
 
   if (typeof size === "number") {
     svgSize = size;
-    // If numeric, keep defaultTextClass as "text-lg" (user can override)
   } else if (size === "large") {
     svgSize = 64;
     defaultTextClass = "text-2xl";
   } else {
-    // "default" or any other string
     svgSize = 48;
     defaultTextClass = "text-lg";
   }
