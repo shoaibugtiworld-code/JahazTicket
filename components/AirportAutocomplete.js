@@ -37,7 +37,8 @@ export default function AirportAutocomplete({
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/airports?q=${encodeURIComponent(query)}`);
+      // CORRECT endpoint — matches your actual API
+      const res = await fetch(`/api/places/suggestions?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setSuggestions(data);
     } catch (e) {
