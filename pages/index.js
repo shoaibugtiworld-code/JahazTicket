@@ -85,8 +85,6 @@ export default function Home() {
   const buildPassengers = () => {
     const list = [];
     for (let i = 0; i < adultCount; i++) list.push({ type: "adult" });
-    // Duffel requires "age" (not "type") for anyone under 18 — using representative
-    // ages for now (8 for child, 1 for infant). Exact DOB is collected at booking time.
     for (let i = 0; i < childCount; i++) list.push({ age: 8 });
     for (let i = 0; i < infantCount; i++) list.push({ age: 1 });
     return list;
@@ -140,290 +138,336 @@ export default function Home() {
     }
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem("jt_session");
+    router.push("/login");
+  };
+
   if (!checkedSession) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-white pb-16">
+    <div className="min-h-screen bg-jtWhite text-jtText">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-5">
-        <Logo />
-        <button onClick={() => router.push("/login")} className="text-muted text-sm">
-          Sign out
-        </button>
-      </div>
-      <h1 className="px-4 text-xl font-bold mb-4">Flights Search</h1>
-
-      {/* Trip type tabs */}
-      <div className="flex gap-2 px-4 mb-4">
-        {TRIP_TYPES.map((type) => (
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-jtBorder">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Logo size={36} withText={true} textClass="text-lg" />
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-jtText">
+            <a href="#" className="hover:text-jtCyan transition-colors">Flights</a>
+            <a href="#" className="hover:text-jtCyan transition-colors">My Bookings</a>
+            <a href="#" className="hover:text-jtCyan transition-colors">Support</a>
+          </nav>
           <button
-            key={type}
-            onClick={() => setTripType(type)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
-              tripType === type
-                ? "border-brand text-brand"
-                : "border-cardline bg-card text-white"
-            }`}
+            onClick={handleSignOut}
+            className="btn-secondary text-sm py-2 px-4"
           >
-            {type}
+            Sign out
           </button>
-        ))}
-      </div>
+        </div>
+      </header>
 
-      {/* Search card */}
-      <div className="mx-4 bg-card border border-cardline rounded-xl2 overflow-hidden relative">
-        {tripType !== "Multi-city" ? (
-          <>
-            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-              <span className="text-xl">🛫</span>
-              <div className="flex-1">
-                <AirportAutocomplete
-                  label="From"
-                  value={origin}
-                  onChange={setOrigin}
-                  placeholder="City or airport"
-                  compact
-                />
-              </div>
+      {/* Hero / Search Section */}
+      <section className="relative bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark py-16 md:py-24 overflow-hidden">
+        {/* Decorative flight path lines */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
+            <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2"/>
+            <path d="M0,350 Q400,150 800,350 T1200,350" fill="none" stroke="#00A8E8" strokeWidth="1.5"/>
+          </svg>
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
+            Find & Book <span className="text-jtCyan">Cheap Flights</span>
+          </h1>
+          <p className="text-blue-100/80 text-lg mb-8">
+            Compare prices, book instantly, and fly with confidence.
+          </p>
+
+          {/* Search Box */}
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-2xl text-left">
+            {/* Trip type tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {TRIP_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setTripType(type)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                    tripType === type
+                      ? "bg-jtCyan text-white"
+                      : "bg-jtWhite text-jtText border border-jtBorder hover:bg-gray-50"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
-            <button
-              onClick={swap}
-              className="absolute right-4 top-[52px] -translate-y-1/2 bg-bg border border-cardline rounded-full w-11 h-11 flex items-center justify-center"
-            >
-              ↕
-            </button>
-
-            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-              <span className="text-xl">🛬</span>
-              <div className="flex-1">
-                <AirportAutocomplete
-                  label="To"
-                  value={destination}
-                  onChange={setDestination}
-                  placeholder="City or airport"
-                  compact
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-              <span className="text-xl">📅</span>
-              <div className="flex-1">
-                <p className="text-muted text-xs">Departure Date</p>
-                <input
-                  type="date"
-                  value={departureDate}
-                  onChange={(e) => setDepartureDate(e.target.value)}
-                  className="bg-transparent font-bold text-lg outline-none w-full"
-                />
-              </div>
-            </div>
-
-            {tripType === "Round-trip" && (
-              <div className="flex items-center gap-4 px-4 py-4 border-b border-cardline">
-                <span className="text-xl">📅</span>
-                <div className="flex-1">
-                  <p className="text-muted text-xs">Return Date</p>
-                  <input
-                    type="date"
-                    value={returnDate}
-                    onChange={(e) => setReturnDate(e.target.value)}
-                    className="bg-transparent font-bold text-lg outline-none w-full"
-                  />
+            {/* Search fields */}
+            {tripType !== "Multi-city" ? (
+              <div className="space-y-3">
+                {/* From / To row with swap */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
+                  <div>
+                    <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
+                    <AirportAutocomplete
+                      value={origin}
+                      onChange={setOrigin}
+                      placeholder="City or airport"
+                      compact
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-xs font-medium text-jtMuted mb-1">To</label>
+                    <AirportAutocomplete
+                      value={destination}
+                      onChange={setDestination}
+                      placeholder="City or airport"
+                      compact
+                    />
+                    <button
+                      onClick={swap}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-jtWhite border border-jtBorder rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      ↕
+                    </button>
+                  </div>
                 </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-jtMuted mb-1">Departure Date</label>
+                    <input
+                      type="date"
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                    />
+                  </div>
+                  {tripType === "Round-trip" && (
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {segments.map((seg, i) => (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
+                      <AirportAutocomplete
+                        value={seg.origin}
+                        onChange={(place) => updateSegment(i, "origin", place)}
+                        placeholder="..."
+                        compact
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">To</label>
+                      <AirportAutocomplete
+                        value={seg.destination}
+                        onChange={(place) => updateSegment(i, "destination", place)}
+                        placeholder="..."
+                        compact
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-jtMuted mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={seg.date}
+                          onChange={(e) => updateSegment(i, "date", e.target.value)}
+                          className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                        />
+                      </div>
+                      {segments.length > 2 && (
+                        <button
+                          onClick={() => removeSegment(i)}
+                          className="mt-6 w-8 h-8 rounded-full border border-jtBorder flex items-center justify-center text-xs hover:bg-gray-50 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={addSegment}
+                  className="text-jtCyan font-semibold text-sm hover:underline flex items-center gap-1"
+                >
+                  <span className="w-5 h-5 rounded-full bg-jtCyan text-white flex items-center justify-center text-xs">+</span>
+                  Add one more flight
+                </button>
               </div>
             )}
-          </>
-        ) : (
-          <div className="divide-y divide-cardline">
-            {segments.map((seg, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
-                {segments.length > 2 && (
-                  <button
-                    onClick={() => removeSegment(i)}
-                    className="w-6 h-6 rounded-full border border-cardline flex items-center justify-center text-xs shrink-0"
-                  >
-                    ✕
-                  </button>
-                )}
-                <div className="flex-1">
-                  <AirportAutocomplete
-                    label="From"
-                    value={seg.origin}
-                    onChange={(place) => updateSegment(i, "origin", place)}
-                    placeholder="..."
-                    compact
-                  />
+
+            {/* Passengers & Cabin Class */}
+            <div
+              onClick={() => setShowPaxModal(true)}
+              className="mt-4 flex items-center gap-3 p-3 border border-jtBorder rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-xl">👪</span>
+              <div className="flex-1">
+                <p className="text-xs text-jtMuted">Passengers &amp; Cabin Class</p>
+                <p className="font-semibold text-sm">
+                  {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
+                  {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </p>
+              </div>
+              <span className="text-jtMuted text-sm">▼</span>
+            </div>
+
+            {/* Payment types (static) */}
+            <div className="mt-4 flex items-center gap-3 text-sm text-jtMuted border-t border-jtBorder pt-3">
+              <span className="text-xl">💳</span>
+              <span>Mastercard · Visa · EasyPaisa · JazzCash</span>
+            </div>
+
+            {/* Search Button */}
+            <button
+              onClick={searchFlights}
+              disabled={loading}
+              className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-base py-3.5"
+            >
+              {loading ? (
+                "Searching..."
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Search Flights
+                </>
+              )}
+            </button>
+
+            {error && (
+              <p className="mt-3 text-red-500 text-sm text-center">{error}</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Results Section */}
+      {offers && (
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-jtText mb-4">Available Flights</h2>
+          <div className="space-y-4">
+            {offers.length === 0 && (
+              <p className="text-jtMuted text-center">No flights found on this route.</p>
+            )}
+            {offers.map((offer) => (
+              <div
+                key={offer.id}
+                className="bg-jtCard border border-jtBorder rounded-2xl p-5 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-jtWhite flex items-center justify-center border border-jtBorder">
+                      <span className="text-jtNavy font-bold text-xs">
+                        {offer.airline?.substring(0, 2) || "FL"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-jtText">{offer.airline || "Airline"}</p>
+                      {offer.legs[0]?.flightNumbers?.[0] && (
+                        <p className="text-xs text-jtMuted">
+                          {offer.legs[0].flightNumbers.join(", ")}
+                          {offer.legs[0].fareBrand ? ` (${offer.legs[0].fareBrand})` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-jtNavy">
+                      {offer.currency} {offer.finalPrice}
+                    </p>
+                    <p className="text-xs text-jtMuted">All-inclusive</p>
+                    <button
+                      onClick={() => {
+                        sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
+                        router.push("/booking");
+                      }}
+                      className="mt-2 btn-primary text-sm py-2 px-5"
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1 border-l border-cardline pl-3">
-                  <AirportAutocomplete
-                    label="To"
-                    value={seg.destination}
-                    onChange={(place) => updateSegment(i, "destination", place)}
-                    placeholder="..."
-                    compact
-                  />
-                </div>
-                <div className="flex-1 border-l border-cardline pl-3">
-                  <p className="text-muted text-xs">Date</p>
-                  <input
-                    type="date"
-                    value={seg.date}
-                    onChange={(e) => updateSegment(i, "date", e.target.value)}
-                    className="bg-transparent font-bold outline-none w-full"
-                  />
+
+                {/* Flight legs details */}
+                <div className="mt-3 pt-3 border-t border-jtBorder">
+                  {offer.legs.map((leg, i) => {
+                    const depTime = leg.departureDate
+                      ? new Date(leg.departureDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                      : "-";
+                    const arrTime = leg.arrivalDate
+                      ? new Date(leg.arrivalDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                      : "-";
+                    return (
+                      <div key={i} className="flex items-center justify-between text-sm py-1">
+                        <span className="font-medium">{depTime}</span>
+                        <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
+                        <span className="font-medium">{arrTime}</span>
+                        <span className="text-xs text-jtMuted">
+                          {leg.originCity || leg.originAirport} ({leg.originAirport}) → {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
+                        </span>
+                        <span className="text-xs text-jtMuted">
+                          {leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
-            <button
-              onClick={addSegment}
-              className="w-full flex items-center gap-2 px-4 py-3 text-brand font-semibold"
-            >
-              <span className="w-6 h-6 rounded-full bg-brand text-black flex items-center justify-center text-sm">
-                +
-              </span>
-              Add one more flight
-            </button>
           </div>
-        )}
-
-        <div
-          onClick={() => setShowPaxModal(true)}
-          className="flex items-center gap-4 px-4 py-4 border-b border-cardline cursor-pointer"
-        >
-          <span className="text-xl">👪</span>
-          <div className="flex-1">
-            <p className="text-muted text-xs">Passengers &amp; Cabin Class</p>
-            <p className="font-bold text-lg mt-1">
-              {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
-              {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 px-4 py-4">
-          <span className="text-xl">💳</span>
-          <div>
-            <p className="text-muted text-xs mb-1">Payment Types</p>
-            <p className="text-sm">Mastercard · Visa · EasyPaisa · JazzCash</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Search button */}
-      <div className="px-4 mt-6">
-        <button
-          onClick={searchFlights}
-          disabled={loading}
-          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg disabled:opacity-60"
-        >
-          {loading ? "Searching..." : "Search Flights"}
-        </button>
-      </div>
-
-      {error && <p className="text-red-400 text-center mt-4 px-4">{error}</p>}
-
-      {/* Results */}
-      {offers && (
-        <div className="px-4 mt-6 space-y-3">
-          {offers.length === 0 && (
-            <p className="text-muted text-center">No flights found on this route.</p>
-          )}
-          {offers.map((offer) => (
-            <div
-              key={offer.id}
-              className="bg-card border border-cardline rounded-xl2 px-4 py-4"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="font-bold">{offer.airline}</p>
-                {offer.legs[0]?.flightNumbers?.[0] && (
-                  <p className="text-muted text-xs">
-                    {offer.legs[0].flightNumbers.join(", ")}
-                    {offer.legs[0].fareBrand ? ` (${offer.legs[0].fareBrand})` : ""}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-3 mb-3">
-                {offer.legs.map((leg, i) => {
-                  const depTime = leg.departureDate
-                    ? new Date(leg.departureDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-                    : "-";
-                  const arrTime = leg.arrivalDate
-                    ? new Date(leg.arrivalDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-                    : "-";
-                  return (
-                    <div key={i}>
-                      <div className="flex items-center justify-between text-sm font-semibold">
-                        <span>{depTime}</span>
-                        <span className="text-muted text-xs">{leg.duration || ""}</span>
-                        <span>{arrTime}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-muted text-xs mt-0.5">
-                        <span>{leg.originCity || leg.originAirport} ({leg.originAirport})</span>
-                        <span>{leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}</span>
-                        <span>{leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-brand font-bold text-lg">
-                    {offer.currency} {offer.finalPrice}
-                  </p>
-                  <p className="text-muted text-[11px]">All-inclusive · no hidden charges later</p>
-                </div>
-                <button
-                  onClick={() => {
-                    sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
-                    router.push("/booking");
-                  }}
-                  className="bg-brand hover:bg-brandDark transition-colors rounded-full px-4 py-1.5 text-sm font-semibold"
-                >
-                  Select
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        </section>
       )}
 
-      {/* Passengers & Cabin Class modal */}
+      {/* Passenger & Cabin Class Modal */}
       {showPaxModal && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-bg border-t sm:border border-cardline rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-4 py-4 border-b border-cardline">
-              <button onClick={() => setShowPaxModal(false)} className="text-xl">✕</button>
-              <p className="font-bold">Passengers &amp; Cabin Class</p>
-              <button onClick={() => setShowPaxModal(false)} className="text-brand text-xl">✓</button>
+          <div className="bg-white border-t sm:border border-jtBorder rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-jtBorder">
+              <button onClick={() => setShowPaxModal(false)} className="text-2xl text-jtMuted hover:text-jtText">✕</button>
+              <p className="font-bold text-jtText">Passengers &amp; Cabin Class</p>
+              <button onClick={() => setShowPaxModal(false)} className="text-jtCyan text-2xl">✓</button>
             </div>
 
             <div className="px-4 py-4">
-              <p className="text-muted text-xs uppercase tracking-wide mb-3">Passengers</p>
+              <p className="text-xs font-medium text-jtMuted uppercase tracking-wider mb-3">Passengers</p>
 
               {[
                 { label: "Adult", hint: "(>12 years)", value: adultCount, setValue: setAdultCount, min: 1 },
                 { label: "Child", hint: "(2–12 years)", value: childCount, setValue: setChildCount, min: 0 },
                 { label: "Infant", hint: "(<2 years)", value: infantCount, setValue: setInfantCount, min: 0 },
               ].map((row) => (
-                <div key={row.label} className="flex items-center justify-between py-3 border-b border-cardline last:border-0">
+                <div key={row.label} className="flex items-center justify-between py-3 border-b border-jtBorder last:border-0">
                   <div>
-                    <p className="font-semibold">{row.label}</p>
-                    <p className="text-muted text-xs">{row.hint}</p>
+                    <p className="font-semibold text-jtText">{row.label}</p>
+                    <p className="text-xs text-jtMuted">{row.hint}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => row.setValue(Math.max(row.min, row.value - 1))}
-                      className="w-9 h-9 rounded-full border border-cardline flex items-center justify-center"
+                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       −
                     </button>
-                    <span className="w-6 text-center font-bold">{row.value}</span>
+                    <span className="w-6 text-center font-bold text-jtText">{row.value}</span>
                     <button
                       onClick={() => row.setValue(row.value + 1)}
-                      className="w-9 h-9 rounded-full border border-cardline flex items-center justify-center"
+                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       +
                     </button>
@@ -431,7 +475,7 @@ export default function Home() {
                 </div>
               ))}
 
-              <p className="text-muted text-xs uppercase tracking-wide mt-6 mb-3">Cabin Class</p>
+              <p className="text-xs font-medium text-jtMuted uppercase tracking-wider mt-6 mb-3">Cabin Class</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { id: "economy", label: "Economy" },
@@ -442,8 +486,10 @@ export default function Home() {
                   <button
                     key={c.id}
                     onClick={() => setCabinClass(c.id)}
-                    className={`py-3 rounded-xl border text-sm font-semibold ${
-                      cabinClass === c.id ? "border-brand text-brand" : "border-cardline text-white"
+                    className={`py-3 rounded-xl border text-sm font-semibold transition-colors ${
+                      cabinClass === c.id
+                        ? "border-jtCyan bg-jtCyan/10 text-jtCyan"
+                        : "border-jtBorder text-jtText hover:bg-gray-50"
                     }`}
                   >
                     {c.label}
