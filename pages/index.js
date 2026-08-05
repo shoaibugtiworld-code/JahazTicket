@@ -335,14 +335,38 @@ export default function Home() {
               key={offer.id}
               className="bg-card border border-cardline rounded-xl2 px-4 py-4"
             >
-              <p className="font-bold mb-2">{offer.airline}</p>
-              <div className="space-y-1 mb-3">
-                {offer.legs.map((leg, i) => (
-                  <p key={i} className="text-muted text-sm">
-                    {leg.originAirport} → {leg.destinationAirport} ·{" "}
-                    {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-bold">{offer.airline}</p>
+                {offer.legs[0]?.flightNumbers?.[0] && (
+                  <p className="text-muted text-xs">
+                    {offer.legs[0].flightNumbers.join(", ")}
+                    {offer.legs[0].fareBrand ? ` (${offer.legs[0].fareBrand})` : ""}
                   </p>
-                ))}
+                )}
+              </div>
+              <div className="space-y-3 mb-3">
+                {offer.legs.map((leg, i) => {
+                  const depTime = leg.departureDate
+                    ? new Date(leg.departureDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                    : "-";
+                  const arrTime = leg.arrivalDate
+                    ? new Date(leg.arrivalDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                    : "-";
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-sm font-semibold">
+                        <span>{depTime}</span>
+                        <span className="text-muted text-xs">{leg.duration || ""}</span>
+                        <span>{arrTime}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted text-xs mt-0.5">
+                        <span>{leg.originCity || leg.originAirport} ({leg.originAirport})</span>
+                        <span>{leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}</span>
+                        <span>{leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               <div className="flex items-center justify-between">
                 <div>
