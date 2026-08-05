@@ -5,10 +5,9 @@ import StepIndicator from "../components/StepIndicator";
 import CountdownTimer from "../components/CountdownTimer";
 
 const METHODS = [
-  { id: "card", label: "Debit / Credit Card", sub: "Visa · Mastercard · all Pakistani & international cards" },
+  { id: "card", label: "Debit / Credit Card", sub: "Visa · Mastercard · all international cards" },
+  { id: "googlepay", label: "Google Pay", sub: "Fast checkout with your saved cards" },
   { id: "bank", label: "Bank Transfer", sub: "Pay directly from your bank account" },
-  { id: "easypaisa", label: "EasyPaisa", sub: "Active EasyPaisa account needed" },
-  { id: "jazzcash", label: "JazzCash", sub: "Pay using your JazzCash wallet" },
 ];
 
 export default function Payment() {
