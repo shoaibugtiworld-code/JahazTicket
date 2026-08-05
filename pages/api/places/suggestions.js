@@ -33,6 +33,7 @@ export default async function handler(req, res) {
         cityName: p.city_name || p.city?.name || "",
         countryName: p.iata_country_code,
         type: p.type, // "airport" or "city"
+        isAllAirports: p.type === "city",
       }));
 
     return res.status(200).json({ places });
