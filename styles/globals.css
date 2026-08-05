@@ -1,12 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  background-color: #0a0a0a;
-  color: #ffffff;
+html {
+  scroll-behavior: smooth;
 }
 
-* {
-  -webkit-tap-highlight-color: transparent;
+body {
+  font-family: 'Inter', 'Montserrat', system-ui, sans-serif;
+  background-color: #F8FAFC; /* jtWhite */
+  color: #1E293B; /* jtText */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F8FAFC;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Primary CTA Button Base */
+.btn-primary {
+  @apply bg-jtOrange hover:bg-jtOrangeDark text-white font-semibold 
+         px-6 py-3 rounded-xl transition-all duration-200 
+         shadow-lg shadow-jtOrange/30 active:scale-95;
+}
+
+/* Secondary CTA */
+.btn-secondary {
+  @apply bg-jtNavy hover:bg-jtNavyDark text-white font-semibold 
+         px-6 py-3 rounded-xl transition-all duration-200 
+         shadow-lg shadow-jtNavy/20 active:scale-95;
+}
+
+/* Glassmorphism card for flight results */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-jtBorder rounded-2xl shadow-sm;
 }
