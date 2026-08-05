@@ -4,7 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles */
 html {
   scroll-behavior: smooth;
 }
@@ -17,7 +16,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -32,7 +30,6 @@ body {
   background: #94A3B8;
 }
 
-/* Buttons - no !important to keep them overridable */
 .btn-primary {
   @apply bg-jtOrange hover:bg-jtOrangeDark text-white font-semibold 
          px-6 py-3 rounded-xl transition-all duration-200 
@@ -45,9 +42,10 @@ body {
          shadow-lg shadow-jtNavy/20 active:scale-95;
 }
 
-/* Utility */
 .glass-card {
   @apply bg-white/80 backdrop-blur-md border border-jtBorder rounded-2xl shadow-sm;
 }
 
-/* No universal color override — we rely on Tailwind classes instead */
+.container {
+  @apply max-w-7xl mx-auto px-4;
+}
