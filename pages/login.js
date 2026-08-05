@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import Logo from "../components/Logo";
@@ -15,7 +15,7 @@ export default function Login() {
     router.push("/");
   };
 
-  const sendMagicLink = async (e: React.FormEvent) => {
+  const sendMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSent(false);
@@ -29,7 +29,6 @@ export default function Login() {
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Optional: redirect after confirmation
         // emailRedirectTo: `${window.location.origin}/callback`,
       },
     });
@@ -39,14 +38,13 @@ export default function Login() {
       setError(authError.message);
     } else {
       setSent(true);
-      setEmail(""); // clear field after success
+      setEmail("");
     }
   };
 
   return (
     <div className="min-h-screen bg-jtWhite flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <Logo size={64} withText={true} textClass="text-2xl" />
         </div>
@@ -59,7 +57,6 @@ export default function Login() {
             Sign in to manage your bookings
           </p>
 
-          {/* Guest button */}
           <button
             onClick={continueAsGuest}
             className="w-full btn-primary flex items-center justify-center gap-2 mb-4"
@@ -76,7 +73,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Email form */}
           <form onSubmit={sendMagicLink}>
             <input
               type="email"
