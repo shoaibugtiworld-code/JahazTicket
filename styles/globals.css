@@ -1,27 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Base */
-html {
-  scroll-behavior: smooth;
+/* === FORCE COLORS — WILL OVERRIDE EVERYTHING === */
+* {
+  color: #1E293B !important;
 }
 
 body {
-  font-family: 'Inter', 'Montserrat', system-ui, sans-serif;
   background-color: #F8FAFC !important;
   color: #1E293B !important;
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Inter', system-ui, sans-serif !important;
 }
 
-/* Force input fields to have dark text and white background */
+/* Input fields - force dark text */
 input,
 select,
-textarea {
+textarea,
+[type="text"],
+[type="email"],
+[type="date"] {
   background-color: #FFFFFF !important;
   color: #1E293B !important;
+  border-color: #E2E8F0 !important;
 }
 
 input::placeholder,
@@ -30,38 +31,27 @@ textarea::placeholder {
   opacity: 1 !important;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: #F8FAFC;
-}
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
-}
-
 /* Buttons */
 .btn-primary {
-  @apply bg-jtOrange hover:bg-jtOrangeDark text-white font-semibold 
-         px-6 py-3 rounded-xl transition-all duration-200 
-         shadow-lg shadow-jtOrange/30 active:scale-95;
+  background-color: #FF6B35 !important;
+  color: #FFFFFF !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+}
+.btn-primary:hover {
+  background-color: #E55A2B !important;
 }
 
 .btn-secondary {
-  @apply bg-jtNavy hover:bg-jtNavyDark text-white font-semibold 
-         px-6 py-3 rounded-xl transition-all duration-200 
-         shadow-lg shadow-jtNavy/20 active:scale-95;
+  background-color: #0B2545 !important;
+  color: #FFFFFF !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
 }
-
-.glass-card {
-  @apply bg-white/80 backdrop-blur-md border border-jtBorder rounded-2xl shadow-sm;
-}
-
-.container {
-  @apply max-w-7xl mx-auto px-4;
+.btn-secondary:hover {
+  background-color: #06182E !important;
 }
