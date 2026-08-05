@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import Logo from "../components/Logo";
@@ -15,7 +15,7 @@ export default function Login() {
     router.push("/");
   };
 
-  const sendMagicLink = async (e) => {
+  const sendMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSent(false);
@@ -26,9 +26,7 @@ export default function Login() {
     setLoading(true);
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        // emailRedirectTo: `${window.location.origin}/callback`,
-      },
+      options: {},
     });
     setLoading(false);
     if (authError) {
