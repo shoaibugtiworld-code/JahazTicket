@@ -30,6 +30,16 @@ function applyMarkup(amount) {
   return withMarkup.toFixed(2);
 }
 
+// Converts Duffel's ISO 8601 duration ("PT2H15M") into "2h 15m"
+function formatDuration(iso) {
+  if (!iso) return null;
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return null;
+  const hours = match[1] ? `${match[1]}h` : "";
+  const minutes = match[2] ? `${match[2]}m` : "";
+  return [hours, minutes].filter(Boolean).join(" ") || null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed, use POST" });
@@ -113,13 +123,25 @@ export default async function handler(req, res) {
         finalPrice: applyMarkup(amountInDisplayCurrency),
         expiresAt: offer.expires_at,
         passengerIds: (offer.passengers || []).map((p) => p.id),
-        legs: (offer.slices || []).map((slice) => ({
-          originAirport: slice.origin?.iata_code,
-          destinationAirport: slice.destination?.iata_code,
-          departureDate: slice.segments?.[0]?.departing_at,
-          arrivalDate: slice.segments?.[slice.segments.length - 1]?.arriving_at,
-          stops: (slice.segments?.length || 1) - 1,
-        })),
+        legs: (offer.slices || []).map((slice) => {
+          const segments = slice.segments || [];
+          const firstSegment = segments[0];
+          const lastSegment = segments[segments.length - 1];
+          return {
+            originAirport: slice.origin?.iata_code,
+            originCity: slice.origin?.city_name || slice.origin?.name,
+            destinationAirport: slice.destination?.iata_code,
+            destinationCity: slice.destination?.city_name || slice.destination?.name,
+            departureDate: firstSegment?.departing_at,
+            arrivalDate: lastSegment?.arriving_at,
+            stops: (segments.length || 1) - 1,
+            duration: formatDuration(slice.duration),
+            fareBrand: slice.fare_brand_name || null,
+            flightNumbers: segments.map(
+              (seg) => `${seg.marketing_carrier?.iata_code || ""}-${seg.marketing_carrier_flight_number || ""}`
+            ),
+          };
+        }),
       };
     });
 
