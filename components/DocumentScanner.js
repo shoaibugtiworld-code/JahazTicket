@@ -125,36 +125,36 @@ export default function DocumentScanner({ mode, onResult }) {
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="flex items-center gap-1.5 text-brand text-xs font-semibold"
+        className="flex items-center gap-1.5 text-jtCyan text-xs font-semibold"
       >
         📷 {status === "scanning" ? "Scanning..." : "Scan with camera"}
       </button>
 
       {previewUrl && status !== "idle" && (
-        <div className="mt-2 bg-card border border-cardline rounded-lg px-3 py-2">
+        <div className="mt-2 bg-white border border-jtBorder rounded-lg px-3 py-2">
           <div className="flex items-center gap-2">
             <img src={previewUrl} alt="Scanned document" className="w-10 h-10 object-cover rounded" />
             <p className="text-xs flex-1">
               {status === "scanning" && (
-                <span className="text-muted">Reading document... {progress > 0 ? `${progress}%` : ""}</span>
+                <span className="text-jtMuted">Reading document... {progress > 0 ? `${progress}%` : ""}</span>
               )}
               {status === "done" && (
-                <span className="text-brand">Number filled in automatically — please double-check it.</span>
+                <span className="text-jtCyan">Number filled in automatically — please double-check it.</span>
               )}
               {status === "error" && (
-                <span className="text-red-400">Couldn't detect the number automatically.</span>
+                <span className="text-red-500">Couldn't detect the number automatically.</span>
               )}
             </p>
           </div>
 
           {status === "error" && rawText && (
-            <div className="mt-2 pt-2 border-t border-cardline">
-              <p className="text-muted text-[11px] mb-1">Here's what we could read from the photo — find and type the number manually:</p>
-              <p className="text-[11px] text-white/80 font-mono whitespace-pre-wrap break-all">{rawText}</p>
+            <div className="mt-2 pt-2 border-t border-jtBorder">
+              <p className="text-jtMuted text-[11px] mb-1">Here's what we could read from the photo — find and type the number manually:</p>
+              <p className="text-[11px] text-jtText/80 font-mono whitespace-pre-wrap break-all">{rawText}</p>
             </div>
           )}
           {status === "error" && !rawText && (
-            <p className="text-muted text-[11px] mt-1">
+            <p className="text-jtMuted text-[11px] mt-1">
               No text was detected at all — try better lighting, hold the document flat, and make sure
               it fills the frame, or just type the number manually.
             </p>
