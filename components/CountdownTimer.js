@@ -26,8 +26,8 @@ export default function CountdownTimer({ expiresAt }) {
 
   return (
     <div className="text-right">
-      <p className="text-muted text-xs">Finish booking in</p>
-      <p className={`font-bold text-sm ${totalSeconds < 60 ? "text-red-400" : "text-brand"}`}>
+      <p className="text-jtMuted text-xs">Finish booking in</p>
+      <p className={`font-bold text-sm ${totalSeconds < 60 ? "text-red-500" : "text-jtCyan"}`}>
         {h}:{m}:{s}
       </p>
     </div>
