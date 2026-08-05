@@ -15,13 +15,11 @@ export default function Home() {
   const [checkedSession, setCheckedSession] = useState(false);
   const [tripType, setTripType] = useState("One-way");
 
-  // One-way / Round-trip fields — each holds { iataCode, label } or null
   const [origin, setOrigin] = useState(null);
   const [destination, setDestination] = useState(null);
   const [departureDate, setDepartureDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
 
-  // Multi-city fields — starts with 2 segments, user can add more
   const [segments, setSegments] = useState([emptySegment(), emptySegment()]);
 
   const [adultCount, setAdultCount] = useState(1);
@@ -74,7 +72,6 @@ export default function Home() {
         { origin: destination?.iataCode, destination: origin?.iataCode, date: returnDate },
       ];
     }
-    // Multi-city
     return segments.map((s) => ({
       origin: s.origin?.iataCode,
       destination: s.destination?.iataCode,
@@ -167,7 +164,6 @@ export default function Home() {
 
       {/* Hero / Search Section */}
       <section className="relative bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark py-16 md:py-24 overflow-hidden">
-        {/* Decorative flight path lines */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
             <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2"/>
@@ -205,7 +201,6 @@ export default function Home() {
             {/* Search fields */}
             {tripType !== "Multi-city" ? (
               <div className="space-y-3">
-                {/* From / To row with swap */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
                   <div>
                     <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
@@ -226,14 +221,13 @@ export default function Home() {
                     />
                     <button
                       onClick={swap}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-jtWhite border border-jtBorder rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white border border-jtBorder rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors"
                     >
                       ↕
                     </button>
                   </div>
                 </div>
 
-                {/* Dates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-jtMuted mb-1">Departure Date</label>
@@ -241,7 +235,7 @@ export default function Home() {
                       type="date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
-                      className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                      className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
                     />
                   </div>
                   {tripType === "Round-trip" && (
@@ -251,7 +245,7 @@ export default function Home() {
                         type="date"
                         value={returnDate}
                         onChange={(e) => setReturnDate(e.target.value)}
-                        className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                        className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
                       />
                     </div>
                   )}
@@ -286,7 +280,7 @@ export default function Home() {
                           type="date"
                           value={seg.date}
                           onChange={(e) => updateSegment(i, "date", e.target.value)}
-                          className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white"
+                          className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
                         />
                       </div>
                       {segments.length > 2 && (
@@ -318,7 +312,7 @@ export default function Home() {
               <span className="text-xl">👪</span>
               <div className="flex-1">
                 <p className="text-xs text-jtMuted">Passengers &amp; Cabin Class</p>
-                <p className="font-semibold text-sm">
+                <p className="font-semibold text-sm text-jtText">
                   {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
                   {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                 </p>
@@ -326,21 +320,17 @@ export default function Home() {
               <span className="text-jtMuted text-sm">▼</span>
             </div>
 
-            {/* Payment types (static) */}
             <div className="mt-4 flex items-center gap-3 text-sm text-jtMuted border-t border-jtBorder pt-3">
               <span className="text-xl">💳</span>
               <span>Mastercard · Visa · EasyPaisa · JazzCash</span>
             </div>
 
-            {/* Search Button */}
             <button
               onClick={searchFlights}
               disabled={loading}
               className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-base py-3.5"
             >
-              {loading ? (
-                "Searching..."
-              ) : (
+              {loading ? "Searching..." : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -368,7 +358,7 @@ export default function Home() {
             {offers.map((offer) => (
               <div
                 key={offer.id}
-                className="bg-jtCard border border-jtBorder rounded-2xl p-5 hover:shadow-lg transition-shadow"
+                className="bg-white border border-jtBorder rounded-2xl p-5 hover:shadow-lg transition-shadow"
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -404,7 +394,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Flight legs details */}
                 <div className="mt-3 pt-3 border-t border-jtBorder">
                   {offer.legs.map((leg, i) => {
                     const depTime = leg.departureDate
@@ -415,9 +404,9 @@ export default function Home() {
                       : "-";
                     return (
                       <div key={i} className="flex items-center justify-between text-sm py-1">
-                        <span className="font-medium">{depTime}</span>
+                        <span className="font-medium text-jtText">{depTime}</span>
                         <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
-                        <span className="font-medium">{arrTime}</span>
+                        <span className="font-medium text-jtText">{arrTime}</span>
                         <span className="text-xs text-jtMuted">
                           {leg.originCity || leg.originAirport} ({leg.originAirport}) → {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
                         </span>
