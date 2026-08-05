@@ -36,50 +36,38 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-bg text-white flex flex-col justify-center px-6">
-      <div className="max-w-sm mx-auto w-full">
-        <div className="mb-8">
-          <Logo size="large" />
-          <p className="text-muted mt-2">Every flight, one clear price.</p>
-        </div>
-
-        {!sent ? (
-          <form onSubmit={sendMagicLink} className="space-y-3">
-            <input
-              type="email"
-              required
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-card border border-cardline rounded-xl px-4 py-3 text-white placeholder-muted outline-none focus:border-brand"
-            />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-3 font-semibold disabled:opacity-60"
-            >
-              {loading ? "Sending..." : "Send login link"}
-            </button>
-          </form>
-        ) : (
-          <p className="text-muted">
-            We sent a login link to <span className="text-white">{email}</span>. Open it to sign in.
-          </p>
-        )}
-
-        <div className="flex items-center gap-3 my-6">
-          <div className="h-px flex-1 bg-cardline" />
-          <span className="text-muted text-sm">or</span>
-          <div className="h-px flex-1 bg-cardline" />
-        </div>
-
-        <button
-          onClick={continueAsGuest}
-          className="w-full border border-cardline rounded-full py-3 font-semibold hover:border-brand transition-colors"
-        >
-          Continue as guest
-        </button>
-      </div>
+  <div className="min-h-screen bg-jtWhite flex items-center justify-center px-4">
+  <div className="w-full max-w-md">
+    {/* Logo centered */}
+    <div className="flex justify-center mb-8">
+      <Logo size={64} withText={true} textClass="text-2xl" />
     </div>
+    
+    <div className="bg-white rounded-2xl border border-jtBorder p-8 shadow-xl">
+      <h2 className="text-2xl font-bold text-jtNavy text-center mb-2">Welcome Back</h2>
+      <p className="text-jtMuted text-center mb-6">Sign in to manage your bookings</p>
+      
+      <button className="w-full btn-primary flex items-center justify-center gap-2 mb-4">
+        Continue as Guest
+      </button>
+      
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-jtBorder"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-jtMuted">or</span>
+        </div>
+      </div>
+      
+      <input 
+        type="email" 
+        placeholder="Enter your email" 
+        className="w-full border border-jtBorder rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan"
+      />
+      <button className="w-full btn-secondary">Send Magic Link</button>
+    </div>
+  </div>
+</div>
   );
 }
