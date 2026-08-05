@@ -36,10 +36,27 @@ export default function Home() {
     const session = localStorage.getItem("jt_session");
     if (!session) {
       router.replace("/login");
-    } else {
-      setCheckedSession(true);
+      return;
     }
+    setCheckedSession(true);
   }, [router]);
+
+  // Pre-fill and auto-search when arriving from a Footer route/airline shortcut
+  useEffect(() => {
+    if (!router.isReady || !checkedSession) return;
+    const { fromCode, fromLabel, toCode, toLabel, date, auto } = router.query;
+    if (fromCode && toCode) {
+      setTripType("One-way");
+      setOrigin({ iataCode: fromCode, label: fromLabel || fromCode });
+      setDestination({ iataCode: toCode, label: toLabel || toCode });
+      if (date) setDepartureDate(date);
+      if (auto === "1") {
+        setTimeout(() => searchFlightsWith({ iataCode: fromCode }, { iataCode: toCode }, date), 200);
+      }
+      router.replace("/", undefined, { shallow: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, checkedSession]);
 
   const swap = () => {
     setOrigin(destination);
@@ -103,12 +120,7 @@ export default function Home() {
     return null;
   };
 
-  const searchFlights = async () => {
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+  const runSearch = async (slices, passengers) => {
     setError("");
     setLoading(true);
     setOffers(null);
@@ -116,11 +128,7 @@ export default function Home() {
       const res = await fetch("/api/flights/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slices: buildSlices(),
-          passengers: buildPassengers(),
-          cabinClass,
-        }),
+        body: JSON.stringify({ slices, passengers, cabinClass }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -133,6 +141,22 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Used by Footer route/airline shortcuts — searches immediately with explicit
+  // values instead of relying on state that may not have re-rendered yet.
+  const searchFlightsWith = (originObj, destinationObj, dateStr) => {
+    const date = dateStr || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    runSearch([{ origin: originObj.iataCode, destination: destinationObj.iataCode, date }], [{ type: "adult" }]);
+  };
+
+  const searchFlights = async () => {
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    runSearch(buildSlices(), buildPassengers());
   };
 
   const handleSignOut = () => {
