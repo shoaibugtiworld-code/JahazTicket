@@ -57,7 +57,7 @@ export default function Payment() {
   if (!checked || !offer || !passenger) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-white pb-28">
+    <div className="min-h-screen bg-jtWhite text-jtText pb-28">
       <div className="flex items-center justify-between px-4 py-5">
         <button onClick={() => router.push("/addons")} className="text-xl">←</button>
         <p className="font-bold">Payment</p>
@@ -72,20 +72,20 @@ export default function Payment() {
       </div>
 
       {/* Review summary */}
-      <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 mb-6 space-y-1">
+      <div className="mx-4 bg-white border border-jtBorder rounded-xl2 px-4 py-4 mb-6 space-y-1">
         <p className="font-bold">{offer.airline}</p>
         {offer.legs.map((leg, i) => (
-          <p key={i} className="text-muted text-sm">
+          <p key={i} className="text-jtMuted text-sm">
             {leg.originAirport} → {leg.destinationAirport} ·{" "}
             {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
           </p>
         ))}
-        <p className="text-muted text-sm">Passenger: {passenger.fullName}</p>
+        <p className="text-jtMuted text-sm">Passenger: {passenger.fullName}</p>
       </div>
 
-      <p className="px-4 text-muted text-sm mb-2">Select a payment method</p>
+      <p className="px-4 text-jtMuted text-sm mb-2">Select a payment method</p>
 
-      <div className="mx-4 bg-card border border-cardline rounded-xl2 divide-y divide-cardline overflow-hidden mb-6">
+      <div className="mx-4 bg-white border border-jtBorder rounded-xl2 divide-y divide-jtBorder overflow-hidden mb-6">
         {METHODS.map((m) => (
           <button
             key={m.id}
@@ -94,25 +94,25 @@ export default function Payment() {
           >
             <span
               className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                method === m.id ? "border-brand" : "border-cardline"
+                method === m.id ? "border-brand" : "border-jtBorder"
               }`}
             >
-              {method === m.id && <span className="w-2.5 h-2.5 rounded-full bg-brand" />}
+              {method === m.id && <span className="w-2.5 h-2.5 rounded-full bg-jtCyan" />}
             </span>
             <span>
               <span className="block font-semibold">{m.label}</span>
-              <span className="block text-muted text-xs mt-0.5">{m.sub}</span>
+              <span className="block text-jtMuted text-xs mt-0.5">{m.sub}</span>
             </span>
           </button>
         ))}
       </div>
 
-      {error && <p className="text-red-400 text-center px-4 mb-4">{error}</p>}
+      {error && <p className="text-red-500 text-center px-4 mb-4">{error}</p>}
 
       {status === "pending_integration" && (
-        <div className="mx-4 bg-card border border-cardline rounded-xl2 px-4 py-4 text-center mb-6">
+        <div className="mx-4 bg-white border border-jtBorder rounded-xl2 px-4 py-4 text-center mb-6">
           <p className="font-semibold mb-1">Payment coming soon</p>
-          <p className="text-muted text-sm">
+          <p className="text-jtMuted text-sm">
             Your payment aggregator isn't connected yet. Once it's live, this button will complete
             the booking instantly.
           </p>
@@ -120,20 +120,20 @@ export default function Payment() {
       )}
 
       {/* Sticky bottom price + pay bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-cardline px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-jtBorder px-4 py-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-muted text-sm">Total price</span>
+          <span className="text-jtMuted text-sm">Total price</span>
           <span className="font-bold text-lg">
             {offer.currency} {offer.finalPrice}
           </span>
         </div>
-        <p className="text-muted text-[11px] mb-3">
+        <p className="text-jtMuted text-[11px] mb-3">
           No extra charges — this is exactly what you'll pay.
         </p>
         <button
           onClick={pay}
           disabled={status === "processing"}
-          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg disabled:opacity-60"
+          className="w-full bg-jtOrange hover:bg-jtOrangeDark transition-colors rounded-full py-4 font-bold text-lg text-white disabled:opacity-60"
         >
           {status === "processing" ? "Processing..." : "Pay Now"}
         </button>
