@@ -7,50 +7,49 @@ const CITY = {
   Karachi: { code: "KHI", label: "Karachi (KHI)" },
   Islamabad: { code: "ISB", label: "Islamabad (ISB)" },
   Lahore: { code: "LHE", label: "Lahore (LHE)" },
-  Peshawar: { code: "PEW", label: "Peshawar (PEW)" },
   Dubai: { code: "DXB", label: "Dubai (DXB)" },
   Jeddah: { code: "JED", label: "Jeddah (JED)" },
-  Madinah: { code: "MED", label: "Madinah (MED)" },
   London: { code: "LON", label: "London — All airports" },
+  "New York": { code: "NYC", label: "New York — All airports" },
+  Paris: { code: "CDG", label: "Paris (CDG)" },
+  Singapore: { code: "SIN", label: "Singapore (SIN)" },
+  Toronto: { code: "YYZ", label: "Toronto (YYZ)" },
+  Doha: { code: "DOH", label: "Doha (DOH)" },
+  Istanbul: { code: "IST", label: "Istanbul (IST)" },
+  "Los Angeles": { code: "LAX", label: "Los Angeles (LAX)" },
+  Sydney: { code: "SYD", label: "Sydney (SYD)" },
 };
 
-const DOMESTIC_AIRLINES = [
-  { name: "Airblue", hub: "Lahore" },
-  { name: "Air Sial", hub: "Lahore" },
-  { name: "Pakistan International Airlines", hub: "Karachi" },
-  { name: "Serene Air", hub: "Islamabad" },
-  { name: "Fly Jinnah", hub: "Karachi" },
-];
-
-const INTERNATIONAL_AIRLINES = [
+// One global list — no "domestic vs international" framing, so the platform
+// reads as a worldwide booking site rather than a Pakistan-only one.
+const AIRLINES = [
   { name: "Emirates", hub: "Dubai" },
-  { name: "Qatar Airways", hub: "Dubai" }, // Duffel route search only, not a carrier filter — see note below
+  { name: "Qatar Airways", hub: "Doha" },
   { name: "Etihad Airways", hub: "Dubai" },
-  { name: "Saudia", hub: "Jeddah" },
-  { name: "Turkish Airlines", hub: "Dubai" },
-  { name: "Gulf Air", hub: "Dubai" },
-  { name: "flydubai", hub: "Dubai" },
-  { name: "Oman Air", hub: "Dubai" },
-  { name: "Cathay Pacific", hub: "London" },
+  { name: "Turkish Airlines", hub: "Istanbul" },
   { name: "British Airways", hub: "London" },
+  { name: "Singapore Airlines", hub: "Singapore" },
+  { name: "Cathay Pacific", hub: "London" },
+  { name: "Lufthansa", hub: "Paris" },
+  { name: "Air France", hub: "Paris" },
+  { name: "American Airlines", hub: "New York" },
+  { name: "Pakistan International Airlines", hub: "Karachi" },
+  { name: "flydubai", hub: "Dubai" },
 ];
 
-const DOMESTIC_ROUTES = [
-  ["Karachi", "Islamabad"],
-  ["Karachi", "Lahore"],
-  ["Islamabad", "Karachi"],
-  ["Lahore", "Islamabad"],
-  ["Lahore", "Karachi"],
-  ["Karachi", "Peshawar"],
-];
-
-const INTERNATIONAL_ROUTES = [
+const POPULAR_ROUTES = [
   ["Karachi", "Dubai"],
-  ["Lahore", "Dubai"],
-  ["Islamabad", "Dubai"],
-  ["Karachi", "Jeddah"],
-  ["Karachi", "Madinah"],
   ["Lahore", "London"],
+  ["Islamabad", "Dubai"],
+  ["London", "Dubai"],
+  ["New York", "London"],
+  ["Singapore", "Dubai"],
+  ["Dubai", "Istanbul"],
+  ["Karachi", "Jeddah"],
+  ["Toronto", "London"],
+  ["Los Angeles", "Dubai"],
+  ["Doha", "London"],
+  ["Sydney", "Singapore"],
 ];
 
 const FOOTER_LINKS = [
@@ -76,14 +75,12 @@ export default function Footer() {
   const router = useRouter();
   const year = new Date().getFullYear();
 
-  // Karachi is used as the default "from" for airline/hub shortcuts since it's
-  // the busiest hub with the most route options for most of these carriers.
   const goToRoute = (fromCity, toCity) => {
     const from = CITY[fromCity];
     const to = CITY[toCity];
     if (!from || !to) return;
     const date = new Date();
-    date.setDate(date.getDate() + 7); // default to a week out — always a valid future search
+    date.setDate(date.getDate() + 7);
     const dateStr = date.toISOString().slice(0, 10);
     router.push(
       `/?fromCode=${from.code}&fromLabel=${encodeURIComponent(from.label)}&toCode=${to.code}&toLabel=${encodeURIComponent(
@@ -96,13 +93,13 @@ export default function Footer() {
     <footer className="mt-12 border-t border-jtBorder bg-white">
       <div className="px-4 py-8 space-y-8 max-w-5xl mx-auto">
         <div className="grid grid-cols-2 gap-6">
-          <Column title="Domestic Airlines">
+          <Column title="Popular Airlines">
             <ul className="space-y-1.5 text-sm">
-              {DOMESTIC_AIRLINES.map((a) => (
+              {AIRLINES.slice(0, 6).map((a) => (
                 <li key={a.name}>
                   <button
-                    onClick={() => goToRoute("Karachi", a.hub === "Karachi" ? "Lahore" : a.hub)}
-                    className="hover:text-jtCyan transition-colors text-left"
+                    onClick={() => goToRoute("Karachi", a.hub)}
+                    className="text-jtCyan underline decoration-jtCyan/40 underline-offset-2 hover:decoration-jtCyan transition-colors text-left"
                   >
                     {a.name}
                   </button>
@@ -110,13 +107,13 @@ export default function Footer() {
               ))}
             </ul>
           </Column>
-          <Column title="International Airlines">
+          <Column title="More Airlines">
             <ul className="space-y-1.5 text-sm">
-              {INTERNATIONAL_AIRLINES.map((a) => (
+              {AIRLINES.slice(6).map((a) => (
                 <li key={a.name}>
                   <button
                     onClick={() => goToRoute("Karachi", a.hub)}
-                    className="hover:text-jtCyan transition-colors text-left"
+                    className="text-jtCyan underline decoration-jtCyan/40 underline-offset-2 hover:decoration-jtCyan transition-colors text-left"
                   >
                     {a.name}
                   </button>
@@ -127,22 +124,28 @@ export default function Footer() {
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-          <Column title="Popular Domestic Routes">
+          <Column title="Popular Routes">
             <ul className="space-y-1.5 text-sm">
-              {DOMESTIC_ROUTES.map(([from, to]) => (
+              {POPULAR_ROUTES.slice(0, 6).map(([from, to]) => (
                 <li key={`${from}-${to}`}>
-                  <button onClick={() => goToRoute(from, to)} className="hover:text-jtCyan transition-colors text-left">
+                  <button
+                    onClick={() => goToRoute(from, to)}
+                    className="text-jtCyan underline decoration-jtCyan/40 underline-offset-2 hover:decoration-jtCyan transition-colors text-left"
+                  >
                     {from} → {to}
                   </button>
                 </li>
               ))}
             </ul>
           </Column>
-          <Column title="Popular International Routes">
+          <Column title="Worldwide Routes">
             <ul className="space-y-1.5 text-sm">
-              {INTERNATIONAL_ROUTES.map(([from, to]) => (
+              {POPULAR_ROUTES.slice(6).map(([from, to]) => (
                 <li key={`${from}-${to}`}>
-                  <button onClick={() => goToRoute(from, to)} className="hover:text-jtCyan transition-colors text-left">
+                  <button
+                    onClick={() => goToRoute(from, to)}
+                    className="text-jtCyan underline decoration-jtCyan/40 underline-offset-2 hover:decoration-jtCyan transition-colors text-left"
+                  >
                     {from} → {to}
                   </button>
                 </li>
@@ -152,12 +155,16 @@ export default function Footer() {
         </div>
 
         <Column title="We Accept">
-          <p className="text-sm">JazzCash · EasyPaisa · Visa · Mastercard</p>
+          <p className="text-sm">Visa · Mastercard · Google Pay · International Payments</p>
         </Column>
 
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm border-t border-jtBorder pt-6">
           {FOOTER_LINKS.map((link) => (
-            <Link key={link.label} href={link.href} className="text-jtMuted hover:text-jtNavy cursor-pointer">
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-jtCyan underline decoration-jtCyan/40 underline-offset-2 hover:decoration-jtCyan cursor-pointer"
+            >
               {link.label}
             </Link>
           ))}
@@ -165,7 +172,7 @@ export default function Footer() {
 
         <div className="pt-2">
           <Logo />
-          <p className="text-jtMuted text-xs mt-3">© {year} Jahaz Ticket. All rights reserved.</p>
+          <p className="text-jtMuted text-xs mt-3">© {year} Jahaz Ticket. Fly anywhere, one clear price.</p>
         </div>
       </div>
     </footer>
