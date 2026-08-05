@@ -153,10 +153,7 @@ export default function Home() {
             <a href="#" className="hover:text-jtCyan transition-colors">My Bookings</a>
             <a href="#" className="hover:text-jtCyan transition-colors">Support</a>
           </nav>
-          <button
-            onClick={handleSignOut}
-            className="btn-secondary text-sm py-2 px-4"
-          >
+          <button onClick={handleSignOut} className="btn-secondary text-sm py-2 px-4">
             Sign out
           </button>
         </div>
@@ -166,14 +163,14 @@ export default function Home() {
       <section className="relative bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark py-16 md:py-24 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
-            <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2"/>
-            <path d="M0,350 Q400,150 800,350 T1200,350" fill="none" stroke="#00A8E8" strokeWidth="1.5"/>
+            <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2" />
+            <path d="M0,350 Q400,150 800,350 T1200,350" fill="none" stroke="#00A8E8" strokeWidth="1.5" />
           </svg>
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
-            Find & Book <span className="text-jtCyan">Cheap Flights</span>
+          <h1 className="font-display text-3xl md:text-5xl font-extrabold text-white mb-4">
+            Find &amp; Book <span className="text-jtCyan">Cheap Flights</span>
           </h1>
           <p className="text-blue-100/80 text-lg mb-8">
             Compare prices, book instantly, and fly with confidence.
@@ -181,7 +178,6 @@ export default function Home() {
 
           {/* Search Box */}
           <div className="bg-white rounded-2xl p-4 md:p-6 shadow-2xl text-left">
-            {/* Trip type tabs */}
             <div className="flex flex-wrap gap-2 mb-4">
               {TRIP_TYPES.map((type) => (
                 <button
@@ -198,18 +194,12 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Search fields */}
             {tripType !== "Multi-city" ? (
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
                   <div>
                     <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
-                    <AirportAutocomplete
-                      value={origin}
-                      onChange={setOrigin}
-                      placeholder="City or airport"
-                      compact
-                    />
+                    <AirportAutocomplete value={origin} onChange={setOrigin} placeholder="City or airport" compact />
                   </div>
                   <div className="relative">
                     <label className="block text-xs font-medium text-jtMuted mb-1">To</label>
@@ -313,7 +303,8 @@ export default function Home() {
               <div className="flex-1">
                 <p className="text-xs text-jtMuted">Passengers &amp; Cabin Class</p>
                 <p className="font-semibold text-sm text-jtText">
-                  {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
+                  {adultCount + childCount + infantCount}{" "}
+                  {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
                   {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
                 </p>
               </div>
@@ -330,7 +321,9 @@ export default function Home() {
               disabled={loading}
               className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-base py-3.5"
             >
-              {loading ? "Searching..." : (
+              {loading ? (
+                "Searching..."
+              ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -340,9 +333,7 @@ export default function Home() {
               )}
             </button>
 
-            {error && (
-              <p className="mt-3 text-red-500 text-sm text-center">{error}</p>
-            )}
+            {error && <p className="mt-3 text-red-500 text-sm text-center">{error}</p>}
           </div>
         </div>
       </section>
@@ -350,11 +341,9 @@ export default function Home() {
       {/* Results Section */}
       {offers && (
         <section className="max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-jtText mb-4">Available Flights</h2>
+          <h2 className="font-display text-2xl font-bold text-jtText mb-4">Available Flights</h2>
           <div className="space-y-4">
-            {offers.length === 0 && (
-              <p className="text-jtMuted text-center">No flights found on this route.</p>
-            )}
+            {offers.length === 0 && <p className="text-jtMuted text-center">No flights found on this route.</p>}
             {offers.map((offer) => (
               <div
                 key={offer.id}
@@ -363,9 +352,7 @@ export default function Home() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-jtWhite flex items-center justify-center border border-jtBorder">
-                      <span className="text-jtNavy font-bold text-xs">
-                        {offer.airline?.substring(0, 2) || "FL"}
-                      </span>
+                      <span className="text-jtNavy font-bold text-xs">{offer.airline?.substring(0, 2) || "FL"}</span>
                     </div>
                     <div>
                       <p className="font-semibold text-jtText">{offer.airline || "Airline"}</p>
@@ -408,7 +395,8 @@ export default function Home() {
                         <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
                         <span className="font-medium text-jtText">{arrTime}</span>
                         <span className="text-xs text-jtMuted">
-                          {leg.originCity || leg.originAirport} ({leg.originAirport}) → {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
+                          {leg.originCity || leg.originAirport} ({leg.originAirport}) →{" "}
+                          {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
                         </span>
                         <span className="text-xs text-jtMuted">
                           {leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}
@@ -428,9 +416,13 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center">
           <div className="bg-white border-t sm:border border-jtBorder rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between px-4 py-4 border-b border-jtBorder">
-              <button onClick={() => setShowPaxModal(false)} className="text-2xl text-jtMuted hover:text-jtText">✕</button>
+              <button onClick={() => setShowPaxModal(false)} className="text-2xl text-jtMuted hover:text-jtText">
+                ✕
+              </button>
               <p className="font-bold text-jtText">Passengers &amp; Cabin Class</p>
-              <button onClick={() => setShowPaxModal(false)} className="text-jtCyan text-2xl">✓</button>
+              <button onClick={() => setShowPaxModal(false)} className="text-jtCyan text-2xl">
+                ✓
+              </button>
             </div>
 
             <div className="px-4 py-4">
