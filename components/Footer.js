@@ -52,7 +52,7 @@ const FOOTER_LINKS = [
 function Column({ title, children }) {
   return (
     <div>
-      <p className="text-muted text-xs uppercase tracking-wide mb-3">{title}</p>
+      <p className="text-jtMuted text-xs uppercase tracking-wide mb-3">{title}</p>
       {children}
     </div>
   );
@@ -62,7 +62,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-12 border-t border-cardline bg-card/40">
+    <footer className="mt-12 border-t border-jtBorder bg-white">
       <div className="px-4 py-8 space-y-8 max-w-5xl mx-auto">
         <div className="grid grid-cols-2 gap-6">
           <Column title="Domestic Airlines">
@@ -106,9 +106,9 @@ export default function Footer() {
           <p className="text-sm">JazzCash · EasyPaisa · Visa · Mastercard</p>
         </Column>
 
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm border-t border-cardline pt-6">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm border-t border-jtBorder pt-6">
           {FOOTER_LINKS.map((link) => (
-            <span key={link} className="text-muted hover:text-white cursor-pointer">
+            <span key={link} className="text-jtMuted hover:text-jtNavy cursor-pointer">
               {link}
             </span>
           ))}
@@ -116,7 +116,7 @@ export default function Footer() {
 
         <div className="pt-2">
           <Logo />
-          <p className="text-muted text-xs mt-3">
+          <p className="text-jtMuted text-xs mt-3">
             © {year} Jahaz Ticket. All rights reserved.
           </p>
         </div>
