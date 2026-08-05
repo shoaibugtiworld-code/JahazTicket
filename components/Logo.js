@@ -1,5 +1,14 @@
 import React from "react";
 
+/**
+ * Logo component – displays a custom SVG airplane icon with an optional,
+ * distinctively-styled "JahazTicket" wordmark (two-tone + accent swoosh
+ * echoing the icon's wing curve, so the brand mark reads as one unit).
+ *
+ * @param {number|string} size - Numeric pixel size, or "default" (48) / "large" (64)
+ * @param {boolean} withText - Whether to show the "JahazTicket" wordmark
+ * @param {string} textClass - Additional Tailwind classes for the text (overrides auto)
+ */
 export default function Logo({ size = "default", withText = false, textClass = "" }) {
   let svgSize = 48;
   let defaultTextClass = "text-lg";
@@ -35,11 +44,23 @@ export default function Logo({ size = "default", withText = false, textClass = "
           fill="#00A8E8"
         />
       </svg>
+
       {withText && (
-        <span className={`font-bold tracking-tight ${finalTextClass}`}>
-          <span className="text-jtNavy">Jahaz</span>
-          <span className="text-jtCyan">Ticket</span>
-        </span>
+        <div className="flex flex-col leading-none">
+          <span className={`font-display font-extrabold tracking-tight ${finalTextClass}`}>
+            <span className="text-jtNavy">Jahaz</span>
+            <span className="text-jtCyan">Ticket</span>
+          </span>
+          {/* Accent swoosh — echoes the icon's wing curve, ties the wordmark to the mark */}
+          <svg
+            viewBox="0 0 120 10"
+            className="w-full mt-0.5"
+            style={{ height: 4 }}
+            preserveAspectRatio="none"
+          >
+            <path d="M0,2 Q60,10 120,2" fill="none" stroke="#00A8E8" strokeWidth="2" />
+          </svg>
+        </div>
       )}
     </div>
   );
