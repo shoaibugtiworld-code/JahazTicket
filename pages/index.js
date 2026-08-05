@@ -135,236 +135,266 @@ export default function Home() {
     }
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem("jt_session");
+    router.push("/login");
+  };
+
   if (!checkedSession) return null;
 
   return (
-    <div className="min-h-screen bg-jtWhite text-jtText pb-16">
+    <div className="min-h-screen bg-jtWhite text-jtText">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-jtBorder">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Logo size={40} withText={true} textClass="text-lg" />
+          <Logo size={36} withText={true} textClass="text-lg" />
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-jtText">
+            <a href="#" className="hover:text-jtCyan transition-colors">Flights</a>
+            <a href="#" className="hover:text-jtCyan transition-colors">My Bookings</a>
+            <a href="#" className="hover:text-jtCyan transition-colors">Support</a>
+          </nav>
           <button
-            onClick={() => router.push("/login")}
-            className="text-jtMuted text-sm hover:text-jtNavy transition-colors font-medium"
+            onClick={handleSignOut}
+            className="btn-secondary text-sm py-2 px-4"
           >
             Sign out
           </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark py-12 md:py-20 overflow-hidden">
-        {/* Decorative flight path lines */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
+      {/* Hero / Search Section */}
+      <section className="relative bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark py-16 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
-            <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2" />
-            <path d="M0,350 Q400,150 800,350 T1200,350" fill="none" stroke="#00A8E8" strokeWidth="1.5" />
+            <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2"/>
+            <path d="M0,350 Q400,150 800,350 T1200,350" fill="none" stroke="#00A8E8" strokeWidth="1.5"/>
           </svg>
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-3">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4">
             Find & Book <span className="text-jtCyan">Cheap Flights</span>
           </h1>
           <p className="text-blue-100/80 text-lg mb-8">
             Compare prices, book instantly, and fly with confidence.
           </p>
+
+          {/* Search Box */}
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-2xl text-left">
+            {/* Trip type tabs */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {TRIP_TYPES.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setTripType(type)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                    tripType === type
+                      ? "bg-jtCyan text-white"
+                      : "bg-jtWhite text-jtText border border-jtBorder hover:bg-gray-50"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+
+            {/* Search fields */}
+            {tripType !== "Multi-city" ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 relative">
+                  <div>
+                    <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
+                    <AirportAutocomplete
+                      value={origin}
+                      onChange={setOrigin}
+                      placeholder="City or airport"
+                      compact
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-xs font-medium text-jtMuted mb-1">To</label>
+                    <AirportAutocomplete
+                      value={destination}
+                      onChange={setDestination}
+                      placeholder="City or airport"
+                      compact
+                    />
+                    <button
+                      onClick={swap}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white border border-jtBorder rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      ↕
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-jtMuted mb-1">Departure Date</label>
+                    <input
+                      type="date"
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
+                    />
+                  </div>
+                  {tripType === "Round-trip" && (
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={returnDate}
+                        onChange={(e) => setReturnDate(e.target.value)}
+                        className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {segments.map((seg, i) => (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">From</label>
+                      <AirportAutocomplete
+                        value={seg.origin}
+                        onChange={(place) => updateSegment(i, "origin", place)}
+                        placeholder="..."
+                        compact
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-jtMuted mb-1">To</label>
+                      <AirportAutocomplete
+                        value={seg.destination}
+                        onChange={(place) => updateSegment(i, "destination", place)}
+                        placeholder="..."
+                        compact
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-jtMuted mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={seg.date}
+                          onChange={(e) => updateSegment(i, "date", e.target.value)}
+                          className="w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText"
+                        />
+                      </div>
+                      {segments.length > 2 && (
+                        <button
+                          onClick={() => removeSegment(i)}
+                          className="mt-6 w-8 h-8 rounded-full border border-jtBorder flex items-center justify-center text-xs hover:bg-gray-50 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={addSegment}
+                  className="text-jtCyan font-semibold text-sm hover:underline flex items-center gap-1"
+                >
+                  <span className="w-5 h-5 rounded-full bg-jtCyan text-white flex items-center justify-center text-xs">+</span>
+                  Add one more flight
+                </button>
+              </div>
+            )}
+
+            {/* Passengers & Cabin Class */}
+            <div
+              onClick={() => setShowPaxModal(true)}
+              className="mt-4 flex items-center gap-3 p-3 border border-jtBorder rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+            >
+              <span className="text-xl">👪</span>
+              <div className="flex-1">
+                <p className="text-xs text-jtMuted">Passengers &amp; Cabin Class</p>
+                <p className="font-semibold text-sm text-jtText">
+                  {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} ·{" "}
+                  {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </p>
+              </div>
+              <span className="text-jtMuted text-sm">▼</span>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3 text-sm text-jtMuted border-t border-jtBorder pt-3">
+              <span className="text-xl">💳</span>
+              <span>Mastercard · Visa · EasyPaisa · JazzCash</span>
+            </div>
+
+            <button
+              onClick={searchFlights}
+              disabled={loading}
+              className="mt-4 w-full btn-primary flex items-center justify-center gap-2 text-base py-3.5"
+            >
+              {loading ? "Searching..." : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Search Flights
+                </>
+              )}
+            </button>
+
+            {error && (
+              <p className="mt-3 text-red-500 text-sm text-center">{error}</p>
+            )}
+          </div>
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-4 -mt-8 relative z-10">
-        {/* Trip type tabs */}
-        <div className="flex gap-2 mb-4">
-          {TRIP_TYPES.map((type) => (
-            <button
-              key={type}
-              onClick={() => setTripType(type)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
-                tripType === type
-                  ? "border-jtCyan bg-jtCyan/10 text-jtCyan"
-                  : "border-jtBorder bg-white text-jtMuted hover:text-jtText"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
-
-        {/* Search card */}
-        <div className="bg-white border border-jtBorder rounded-2xl overflow-hidden shadow-xl relative">
-          {tripType !== "Multi-city" ? (
-            <>
-              <div className="flex items-center gap-4 px-4 py-4 border-b border-jtBorder">
-                <span className="text-2xl">🛫</span>
-                <div className="flex-1">
-                  <AirportAutocomplete
-                    label="From"
-                    value={origin}
-                    onChange={setOrigin}
-                    placeholder="City or airport"
-                    compact
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={swap}
-                className="absolute right-4 top-[52px] -translate-y-1/2 bg-jtWhite border border-jtBorder rounded-full w-11 h-11 flex items-center justify-center shadow-sm hover:bg-jtCyan/10 transition-colors z-10 text-jtNavy"
-              >
-                ⇅
-              </button>
-
-              <div className="flex items-center gap-4 px-4 py-4 border-b border-jtBorder">
-                <span className="text-2xl">🛬</span>
-                <div className="flex-1">
-                  <AirportAutocomplete
-                    label="To"
-                    value={destination}
-                    onChange={setDestination}
-                    placeholder="City or airport"
-                    compact
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4 px-4 py-4 border-b border-jtBorder">
-                <span className="text-2xl">📅</span>
-                <div className="flex-1">
-                  <p className="text-jtMuted text-xs">Departure Date</p>
-                  <input
-                    type="date"
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    className="bg-transparent font-bold text-lg outline-none w-full text-jtText"
-                  />
-                </div>
-              </div>
-
-              {tripType === "Round-trip" && (
-                <div className="flex items-center gap-4 px-4 py-4 border-b border-jtBorder">
-                  <span className="text-2xl">📅</span>
-                  <div className="flex-1">
-                    <p className="text-jtMuted text-xs">Return Date</p>
-                    <input
-                      type="date"
-                      value={returnDate}
-                      onChange={(e) => setReturnDate(e.target.value)}
-                      className="bg-transparent font-bold text-lg outline-none w-full text-jtText"
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="divide-y divide-jtBorder">
-              {segments.map((seg, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  {segments.length > 2 && (
-                    <button
-                      onClick={() => removeSegment(i)}
-                      className="w-6 h-6 rounded-full border border-jtBorder flex items-center justify-center text-xs shrink-0 text-jtMuted hover:text-red-500 hover:border-red-300"
-                    >
-                      ✕
-                    </button>
-                  )}
-                  <div className="flex-1">
-                    <AirportAutocomplete
-                      label="From"
-                      value={seg.origin}
-                      onChange={(place) => updateSegment(i, "origin", place)}
-                      placeholder="..."
-                      compact
-                    />
-                  </div>
-                  <div className="flex-1 border-l border-jtBorder pl-3">
-                    <AirportAutocomplete
-                      label="To"
-                      value={seg.destination}
-                      onChange={(place) => updateSegment(i, "destination", place)}
-                      placeholder="..."
-                      compact
-                    />
-                  </div>
-                  <div className="flex-1 border-l border-jtBorder pl-3">
-                    <p className="text-jtMuted text-xs">Date</p>
-                    <input
-                      type="date"
-                      value={seg.date}
-                      onChange={(e) => updateSegment(i, "date", e.target.value)}
-                      className="bg-transparent font-bold outline-none w-full text-jtText"
-                    />
-                  </div>
-                </div>
-              ))}
-              <button
-                onClick={addSegment}
-                className="w-full flex items-center gap-2 px-4 py-3 text-jtCyan font-semibold hover:bg-jtCyan/5"
-              >
-                <span className="w-6 h-6 rounded-full bg-jtCyan text-white flex items-center justify-center text-sm">
-                  +
-                </span>
-                Add one more flight
-              </button>
-            </div>
-          )}
-
-          <div
-            onClick={() => setShowPaxModal(true)}
-            className="flex items-center gap-4 px-4 py-4 border-b border-jtBorder cursor-pointer hover:bg-jtWhite/50 transition-colors"
-          >
-            <span className="text-2xl">👨‍👩‍👧</span>
-            <div className="flex-1">
-              <p className="text-jtMuted text-xs">Passengers &amp; Cabin Class</p>
-              <p className="font-bold text-lg mt-1 text-jtText">
-                {adultCount + childCount + infantCount} {adultCount + childCount + infantCount === 1 ? "Passenger" : "Passengers"} · {" "}
-                {cabinClass.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 px-4 py-4">
-            <span className="text-2xl">💳</span>
-            <div>
-              <p className="text-jtMuted text-xs mb-1">Payment Types</p>
-              <p className="text-sm text-jtText">Mastercard · Visa · EasyPaisa · JazzCash</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Search button */}
-        <div className="mt-6">
-          <button
-            onClick={searchFlights}
-            disabled={loading}
-            className="w-full bg-jtOrange hover:bg-jtOrangeDark transition-colors rounded-full py-4 font-bold text-lg text-white shadow-lg shadow-jtOrange/30 disabled:opacity-60 active:scale-[0.98]"
-          >
-            {loading ? "Searching..." : "Search Flights"}
-          </button>
-        </div>
-
-        {error && <p className="text-red-500 text-center mt-4 px-4 font-medium">{error}</p>}
-
-        {/* Results */}
-        {offers && (
-          <div className="mt-8 space-y-4">
+      {/* Results Section */}
+      {offers && (
+        <section className="max-w-4xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold text-jtText mb-4">Available Flights</h2>
+          <div className="space-y-4">
             {offers.length === 0 && (
-              <p className="text-jtMuted text-center py-8">No flights found on this route.</p>
+              <p className="text-jtMuted text-center">No flights found on this route.</p>
             )}
             {offers.map((offer) => (
               <div
                 key={offer.id}
-                className="bg-white border border-jtBorder rounded-2xl px-5 py-5 hover:shadow-lg transition-shadow"
+                className="bg-white border border-jtBorder rounded-2xl p-5 hover:shadow-lg transition-shadow"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-bold text-jtNavy">{offer.airline}</p>
-                  {offer.legs[0]?.flightNumbers?.[0] && (
-                    <p className="text-jtMuted text-xs">
-                      {offer.legs[0].flightNumbers.join(", ")}
-                      {offer.legs[0].fareBrand ? ` (${offer.legs[0].fareBrand})` : ""}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-jtWhite flex items-center justify-center border border-jtBorder">
+                      <span className="text-jtNavy font-bold text-xs">
+                        {offer.airline?.substring(0, 2) || "FL"}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-jtText">{offer.airline || "Airline"}</p>
+                      {offer.legs[0]?.flightNumbers?.[0] && (
+                        <p className="text-xs text-jtMuted">
+                          {offer.legs[0].flightNumbers.join(", ")}
+                          {offer.legs[0].fareBrand ? ` (${offer.legs[0].fareBrand})` : ""}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-jtNavy">
+                      {offer.currency} {offer.finalPrice}
                     </p>
-                  )}
+                    <p className="text-xs text-jtMuted">All-inclusive</p>
+                    <button
+                      onClick={() => {
+                        sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
+                        router.push("/booking");
+                      }}
+                      className="mt-2 btn-primary text-sm py-2 px-5"
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-3 mb-4">
+
+                <div className="mt-3 pt-3 border-t border-jtBorder">
                   {offer.legs.map((leg, i) => {
                     const depTime = leg.departureDate
                       ? new Date(leg.departureDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
@@ -373,56 +403,38 @@ export default function Home() {
                       ? new Date(leg.arrivalDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
                       : "-";
                     return (
-                      <div key={i}>
-                        <div className="flex items-center justify-between text-sm font-semibold text-jtText">
-                          <span>{depTime}</span>
-                          <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
-                          <span>{arrTime}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-jtMuted text-xs mt-1">
-                          <span>{leg.originCity || leg.originAirport} ({leg.originAirport})</span>
-                          <span>{leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}</span>
-                          <span>{leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})</span>
-                        </div>
+                      <div key={i} className="flex items-center justify-between text-sm py-1">
+                        <span className="font-medium text-jtText">{depTime}</span>
+                        <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
+                        <span className="font-medium text-jtText">{arrTime}</span>
+                        <span className="text-xs text-jtMuted">
+                          {leg.originCity || leg.originAirport} ({leg.originAirport}) → {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
+                        </span>
+                        <span className="text-xs text-jtMuted">
+                          {leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-jtBorder">
-                  <div>
-                    <p className="text-jtOrange font-bold text-xl">
-                      {offer.currency} {offer.finalPrice}
-                    </p>
-                    <p className="text-jtMuted text-xs">All-inclusive · no hidden charges later</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      sessionStorage.setItem("jt_selected_offer", JSON.stringify(offer));
-                      router.push("/booking");
-                    }}
-                    className="bg-jtOrange hover:bg-jtOrangeDark transition-colors rounded-full px-6 py-2 text-sm font-semibold text-white shadow-md"
-                  >
-                    Select
-                  </button>
-                </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </section>
+      )}
 
-      {/* Passengers & Cabin Class modal */}
+      {/* Passenger & Cabin Class Modal */}
       {showPaxModal && (
-        <div className="fixed inset-0 bg-jtNavy/60 z-50 flex items-end sm:items-center justify-center">
-          <div className="bg-white border-t sm:border border-jtBorder rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center">
+          <div className="bg-white border-t sm:border border-jtBorder rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between px-4 py-4 border-b border-jtBorder">
-              <button onClick={() => setShowPaxModal(false)} className="text-jtMuted text-xl hover:text-jtText">✕</button>
-              <p className="font-bold text-jtNavy">Passengers &amp; Cabin Class</p>
-              <button onClick={() => setShowPaxModal(false)} className="text-jtCyan text-xl font-bold">✓</button>
+              <button onClick={() => setShowPaxModal(false)} className="text-2xl text-jtMuted hover:text-jtText">✕</button>
+              <p className="font-bold text-jtText">Passengers &amp; Cabin Class</p>
+              <button onClick={() => setShowPaxModal(false)} className="text-jtCyan text-2xl">✓</button>
             </div>
 
             <div className="px-4 py-4">
-              <p className="text-jtMuted text-xs uppercase tracking-wide mb-3 font-semibold">Passengers</p>
+              <p className="text-xs font-medium text-jtMuted uppercase tracking-wider mb-3">Passengers</p>
 
               {[
                 { label: "Adult", hint: "(>12 years)", value: adultCount, setValue: setAdultCount, min: 1 },
@@ -432,19 +444,19 @@ export default function Home() {
                 <div key={row.label} className="flex items-center justify-between py-3 border-b border-jtBorder last:border-0">
                   <div>
                     <p className="font-semibold text-jtText">{row.label}</p>
-                    <p className="text-jtMuted text-xs">{row.hint}</p>
+                    <p className="text-xs text-jtMuted">{row.hint}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => row.setValue(Math.max(row.min, row.value - 1))}
-                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center text-jtText hover:bg-jtWhite"
+                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       −
                     </button>
                     <span className="w-6 text-center font-bold text-jtText">{row.value}</span>
                     <button
                       onClick={() => row.setValue(row.value + 1)}
-                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center text-jtText hover:bg-jtWhite"
+                      className="w-9 h-9 rounded-full border border-jtBorder flex items-center justify-center hover:bg-gray-50 transition-colors"
                     >
                       +
                     </button>
@@ -452,7 +464,7 @@ export default function Home() {
                 </div>
               ))}
 
-              <p className="text-jtMuted text-xs uppercase tracking-wide mt-6 mb-3 font-semibold">Cabin Class</p>
+              <p className="text-xs font-medium text-jtMuted uppercase tracking-wider mt-6 mb-3">Cabin Class</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { id: "economy", label: "Economy" },
@@ -463,10 +475,10 @@ export default function Home() {
                   <button
                     key={c.id}
                     onClick={() => setCabinClass(c.id)}
-                    className={`py-3 rounded-xl border text-sm font-semibold ${
+                    className={`py-3 rounded-xl border text-sm font-semibold transition-colors ${
                       cabinClass === c.id
                         ? "border-jtCyan bg-jtCyan/10 text-jtCyan"
-                        : "border-jtBorder text-jtText hover:border-jtCyan/50"
+                        : "border-jtBorder text-jtText hover:bg-gray-50"
                     }`}
                   >
                     {c.label}
