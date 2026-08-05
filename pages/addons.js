@@ -23,7 +23,7 @@ export default function Addons() {
   if (!checked || !offer) return null;
 
   return (
-    <div className="min-h-screen bg-bg text-white pb-28">
+    <div className="min-h-screen bg-jtWhite text-jtText pb-28">
       <div className="flex items-center justify-between px-4 py-5">
         <button onClick={() => router.push("/booking")} className="text-xl">←</button>
         <Logo />
@@ -37,24 +37,24 @@ export default function Addons() {
         </div>
       </div>
 
-      <div className="mx-4 mt-4 bg-card border border-cardline rounded-xl2 px-4 py-6 text-center">
+      <div className="mx-4 mt-4 bg-white border border-jtBorder rounded-xl2 px-4 py-6 text-center">
         <p className="font-semibold mb-1">Extra baggage, seats and meals — coming soon</p>
-        <p className="text-muted text-sm">
+        <p className="text-jtMuted text-sm">
           We're connecting real airline pricing for these add-ons. For now you can continue straight
           to payment with your selected fare.
         </p>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-cardline px-4 py-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-jtBorder px-4 py-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-muted text-sm">Total price</span>
+          <span className="text-jtMuted text-sm">Total price</span>
           <span className="font-bold text-lg">
             {offer.currency} {offer.finalPrice}
           </span>
         </div>
         <button
           onClick={() => router.push("/payment")}
-          className="w-full bg-brand hover:bg-brandDark transition-colors rounded-full py-4 font-bold text-lg"
+          className="w-full bg-jtOrange hover:bg-jtOrangeDark transition-colors rounded-full py-4 font-bold text-lg text-white"
         >
           Continue without add-ons
         </button>
