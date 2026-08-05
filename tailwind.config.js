@@ -19,6 +19,12 @@ module.exports = {
         jtText: "#1E293B",
         jtMuted: "#64748B",
       },
+      borderRadius: {
+        xl2: "1.25rem",
+      },
+      fontFamily: {
+        sans: ['Inter', 'Montserrat', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],
