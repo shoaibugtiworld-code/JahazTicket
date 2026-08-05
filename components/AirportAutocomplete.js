@@ -1,98 +1,119 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
-export default function AirportAutocomplete({ value, onChange, placeholder, compact }) {
-  const [query, setQuery] = useState(value?.label || "");
-  const [results, setResults] = useState([]);
-  const [open, setOpen] = useState(false);
+export default function AirportAutocomplete({
+  value,
+  onChange,
+  placeholder = "City or airport",
+  compact = false,
+}) {
+  const [inputValue, setInputValue] = useState(value?.label || "");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
-  const boxRef = useRef(null);
+  const wrapperRef = useRef(null);
   const debounceRef = useRef(null);
 
   useEffect(() => {
-    setQuery(value?.label || "");
-  }, [value]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
-    };
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleInput = (text) => {
-    setQuery(text);
-    setOpen(true);
-    clearTimeout(debounceRef.current);
+  useEffect(() => {
+    setInputValue(value?.label || "");
+  }, [value]);
 
-    if (text.trim().length < 2) {
-      setResults([]);
+  const fetchAirports = (query) => {
+    if (query.trim().length < 2) {
+      setSuggestions([]);
       return;
     }
-
+    clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        // ✅ یہ وہی API ہے جو آپ نے پہلے استعمال کی تھی — یقینی بنائیں کہ یہ موجود ہے
-        const res = await fetch(`/api/places/suggestions?query=${encodeURIComponent(text)}`);
+        // This matches the actual backend route — pages/api/places/suggestions.js —
+        // which proxies Duffel's Places API and returns { places: [...] }.
+        const res = await fetch(`/api/places/suggestions?query=${encodeURIComponent(query)}`);
         const data = await res.json();
-        setResults(data.places || []);
+        const places = (data.places || []).map((p) => ({
+          iataCode: p.iataCode,
+          label: p.isAllAirports ? `${p.name} — All airports` : `${p.cityName || p.name} (${p.iataCode})`,
+          name: p.name,
+          city: p.cityName,
+          country: p.countryName,
+          isAllAirports: p.isAllAirports,
+        }));
+        setSuggestions(places);
       } catch {
-        setResults([]);
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }, 300);
   };
 
-  const select = (place) => {
-    const label = place.isAllAirports
-      ? `${place.name} — All airports`
-      : `${place.cityName || place.name} (${place.iataCode})`;
-    onChange({ iataCode: place.iataCode, label });
-    setQuery(label);
-    setOpen(false);
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    if (val.length >= 2) {
+      fetchAirports(val);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+    if (!val) onChange(null);
+  };
+
+  const handleSelect = (airport) => {
+    setInputValue(airport.label);
+    setShowSuggestions(false);
+    onChange(airport);
   };
 
   return (
-    <div className="relative" ref={boxRef}>
-      {!compact && <label className="text-jtMuted text-xs">{label}</label>}
-      {compact && <p className="text-jtMuted text-xs">{label}</p>}
+    <div ref={wrapperRef} className="relative w-full">
       <input
-        value={query}
-        onChange={(e) => handleInput(e.target.value)}
-        onFocus={() => query.length >= 2 && setOpen(true)}
-        placeholder={placeholder || "City or airport name"}
-        className={
-          compact
-            ? "bg-transparent font-bold text-lg outline-none w-full placeholder-jtMuted text-jtText"
-            : "w-full bg-white border border-jtBorder rounded-xl px-4 py-3 mt-1 outline-none focus:border-jtCyan text-jtText"
-        }
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={() => inputValue.length >= 2 && setShowSuggestions(true)}
+        placeholder={placeholder}
+        className={`w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText ${
+          compact ? "text-sm" : ""
+        }`}
       />
-      {open && (loading || results.length > 0) && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-jtBorder rounded-xl max-h-64 overflow-y-auto shadow-lg">
-          {loading && <p className="text-jtMuted text-xs px-4 py-3">Searching...</p>}
-          {!loading &&
-            results.map((place) => (
+      {showSuggestions && (suggestions.length > 0 || loading) && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-jtBorder rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          {loading ? (
+            <div className="px-4 py-2 text-jtMuted text-sm">Searching...</div>
+          ) : (
+            suggestions.map((airport) => (
               <button
+                key={airport.iataCode + (airport.isAllAirports ? "-city" : "-airport") + airport.name}
                 type="button"
-                key={place.iataCode + place.type + place.name}
-                onClick={() => select(place)}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors border-b border-jtBorder last:border-0"
+                onClick={() => handleSelect(airport)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors border-b border-jtBorder last:border-0"
               >
-                <p className="text-sm font-semibold text-jtText">
-                  {place.isAllAirports ? place.name : place.cityName || place.name}{" "}
-                  <span className="text-jtCyan">({place.iataCode})</span>
-                  {place.isAllAirports && (
-                    <span className="ml-1 text-[10px] bg-jtCyan/20 text-jtCyan px-1.5 py-0.5 rounded">
+                <div className="font-medium text-jtText flex items-center gap-1.5">
+                  {airport.city || airport.name} <span className="text-jtCyan">({airport.iataCode})</span>
+                  {airport.isAllAirports && (
+                    <span className="text-[10px] bg-jtCyan/10 text-jtCyan px-1.5 py-0.5 rounded">
                       All airports
                     </span>
                   )}
-                </p>
-                <p className="text-jtMuted text-xs">
-                  {place.isAllAirports ? "Searches every airport in this city" : place.name}
-                </p>
+                </div>
+                <div className="text-xs text-jtMuted">
+                  {airport.isAllAirports ? "Searches every airport in this city" : airport.name}
+                </div>
               </button>
-            ))}
+            ))
+          )}
         </div>
       )}
     </div>
