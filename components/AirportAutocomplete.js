@@ -44,7 +44,9 @@ export default function AirportAutocomplete({ label, value, onChange, placeholde
   };
 
   const select = (place) => {
-    const label = `${place.cityName || place.name} (${place.iataCode}) — ${place.name}`;
+    const label = place.isAllAirports
+      ? `${place.name} — All airports`
+      : `${place.cityName || place.name} (${place.iataCode})`;
     onChange({ iataCode: place.iataCode, label });
     setQuery(label);
     setOpen(false);
@@ -77,10 +79,17 @@ export default function AirportAutocomplete({ label, value, onChange, placeholde
                 className="w-full text-left px-4 py-2.5 hover:bg-cardline transition-colors border-b border-cardline last:border-0"
               >
                 <p className="text-sm font-semibold">
-                  {place.cityName || place.name}{" "}
+                  {place.isAllAirports ? place.name : place.cityName || place.name}{" "}
                   <span className="text-brand">({place.iataCode})</span>
+                  {place.isAllAirports && (
+                    <span className="ml-1 text-[10px] bg-brand/20 text-brand px-1.5 py-0.5 rounded">
+                      All airports
+                    </span>
+                  )}
                 </p>
-                <p className="text-muted text-xs">{place.name}</p>
+                <p className="text-muted text-xs">
+                  {place.isAllAirports ? "Searches every airport in this city" : place.name}
+                </p>
               </button>
             ))}
         </div>
