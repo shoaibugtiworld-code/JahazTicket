@@ -19,31 +19,34 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setSent(false);
+
     if (!supabase) {
       setError("Supabase isn't configured. Check environment variables.");
       return;
     }
+
     setLoading(true);
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Optional: redirect to your app after email confirmation
+        // Optional: redirect after confirmation
         // emailRedirectTo: `${window.location.origin}/callback`,
       },
     });
     setLoading(false);
+
     if (authError) {
       setError(authError.message);
     } else {
       setSent(true);
-      setEmail(""); // clear email field
+      setEmail(""); // clear field after success
     }
   };
 
   return (
     <div className="min-h-screen bg-jtWhite flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo centered */}
+        {/* Logo */}
         <div className="flex justify-center mb-8">
           <Logo size={64} withText={true} textClass="text-2xl" />
         </div>
@@ -111,4 +114,4 @@ export default function Login() {
       </div>
     </div>
   );
-    }
+}
