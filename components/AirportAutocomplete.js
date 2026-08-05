@@ -1,97 +1,101 @@
-import { useEffect, useRef, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
-export default function AirportAutocomplete({ label, value, onChange, placeholder, compact }) {
-  const [query, setQuery] = useState(value?.label || "");
-  const [results, setResults] = useState([]);
-  const [open, setOpen] = useState(false);
+export default function AirportAutocomplete({
+  value,
+  onChange,
+  placeholder = "City or airport",
+  compact = false,
+}) {
+  const [inputValue, setInputValue] = useState(value?.label || "");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
-  const boxRef = useRef(null);
-  const debounceRef = useRef(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
-    setQuery(value?.label || "");
-  }, [value]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
-    };
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleInput = (text) => {
-    setQuery(text);
-    setOpen(true);
-    clearTimeout(debounceRef.current);
+  useEffect(() => {
+    if (value?.label) {
+      setInputValue(value.label);
+    } else {
+      setInputValue("");
+    }
+  }, [value]);
 
-    if (text.trim().length < 2) {
-      setResults([]);
+  const fetchAirports = async (query) => {
+    if (query.length < 2) {
+      setSuggestions([]);
       return;
     }
-
-    debounceRef.current = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/places/suggestions?query=${encodeURIComponent(text)}`);
-        const data = await res.json();
-        setResults(data.places || []);
-      } catch {
-        setResults([]);
-      }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/airports?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (e) {
+      setSuggestions([]);
+    } finally {
       setLoading(false);
-    }, 300);
+    }
   };
 
-  const select = (place) => {
-    const label = place.isAllAirports
-      ? `${place.name} — All airports`
-      : `${place.cityName || place.name} (${place.iataCode})`;
-    onChange({ iataCode: place.iataCode, label });
-    setQuery(label);
-    setOpen(false);
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    if (val.length >= 2) {
+      fetchAirports(val);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+    if (!val) onChange(null);
+  };
+
+  const handleSelect = (airport) => {
+    setInputValue(airport.label);
+    setShowSuggestions(false);
+    onChange(airport);
   };
 
   return (
-    <div className="relative" ref={boxRef}>
-      {!compact && <label className="text-muted text-xs">{label}</label>}
-      {compact && <p className="text-muted text-xs">{label}</p>}
+    <div ref={wrapperRef} className="relative w-full">
       <input
-        value={query}
-        onChange={(e) => handleInput(e.target.value)}
-        onFocus={() => query.length >= 2 && setOpen(true)}
-        placeholder={placeholder || "City or airport name"}
-        className={
-          compact
-            ? "bg-transparent font-bold text-lg outline-none w-full placeholder-muted"
-            : "w-full bg-card border border-cardline rounded-xl px-4 py-3 mt-1 outline-none focus:border-brand"
-        }
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={() => inputValue.length >= 2 && setShowSuggestions(true)}
+        placeholder={placeholder}
+        className={`w-full border border-jtBorder rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan bg-white text-jtText ${
+          compact ? "text-sm" : ""
+        }`}
       />
-      {open && (loading || results.length > 0) && (
-        <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-cardline rounded-xl max-h-64 overflow-y-auto shadow-lg">
-          {loading && <p className="text-muted text-xs px-4 py-3">Searching...</p>}
-          {!loading &&
-            results.map((place) => (
+      {showSuggestions && (suggestions.length > 0 || loading) && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-jtBorder rounded-xl shadow-lg max-h-60 overflow-y-auto">
+          {loading ? (
+            <div className="px-4 py-2 text-jtMuted text-sm">Searching...</div>
+          ) : (
+            suggestions.map((airport) => (
               <button
-                type="button"
-                key={place.iataCode + place.type + place.name}
-                onClick={() => select(place)}
-                className="w-full text-left px-4 py-2.5 hover:bg-cardline transition-colors border-b border-cardline last:border-0"
+                key={airport.iataCode}
+                onClick={() => handleSelect(airport)}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 transition-colors border-b border-jtBorder last:border-0"
               >
-                <p className="text-sm font-semibold">
-                  {place.isAllAirports ? place.name : place.cityName || place.name}{" "}
-                  <span className="text-brand">({place.iataCode})</span>
-                  {place.isAllAirports && (
-                    <span className="ml-1 text-[10px] bg-brand/20 text-brand px-1.5 py-0.5 rounded">
-                      All airports
-                    </span>
-                  )}
-                </p>
-                <p className="text-muted text-xs">
-                  {place.isAllAirports ? "Searches every airport in this city" : place.name}
-                </p>
+                <div className="font-medium text-jtText">{airport.label}</div>
+                <div className="text-xs text-jtMuted">
+                  {airport.iataCode} · {airport.city}, {airport.country}
+                </div>
               </button>
-            ))}
+            ))
+          )}
         </div>
       )}
     </div>
