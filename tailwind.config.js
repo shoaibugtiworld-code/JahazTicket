@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import Logo from "../components/Logo";
@@ -15,23 +15,25 @@ export default function Login() {
     router.push("/");
   };
 
-  const sendMagicLink = async (e: React.FormEvent) => {
+  const sendMagicLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSent(false);
+
     if (!supabase) {
       setError("Supabase isn't configured. Check environment variables.");
       return;
     }
+
     setLoading(true);
     const { error: authError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Uncomment if you have a callback page:
         // emailRedirectTo: `${window.location.origin}/callback`,
       },
     });
     setLoading(false);
+
     if (authError) {
       setError(authError.message);
     } else {
@@ -43,12 +45,11 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-jtWhite flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex justify-center mb-8">
           <Logo size={64} withText={true} textClass="text-2xl" />
         </div>
 
-        <div className="bg-jtCard rounded-2xl border border-jtBorder p-8 shadow-xl">
+        <div className="bg-white rounded-2xl border border-jtBorder p-8 shadow-xl">
           <h2 className="text-2xl font-bold text-jtNavy text-center mb-2">
             Welcome Back
           </h2>
@@ -56,10 +57,10 @@ export default function Login() {
             Sign in to manage your bookings
           </p>
 
-          {/* Guest button (Primary – Orange) */}
+          {/* Guest button – using btn-primary */}
           <button
             onClick={continueAsGuest}
-            className="w-full bg-jtOrange hover:bg-jtOrangeDark text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mb-4"
+            className="w-full btn-primary flex items-center justify-center gap-2 mb-4"
           >
             Continue as Guest
           </button>
@@ -69,11 +70,10 @@ export default function Login() {
               <div className="w-full border-t border-jtBorder"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-jtCard text-jtMuted">or</span>
+              <span className="px-2 bg-white text-jtMuted">or</span>
             </div>
           </div>
 
-          {/* Email form */}
           <form onSubmit={sendMagicLink}>
             <input
               type="email"
@@ -95,11 +95,11 @@ export default function Login() {
               </p>
             )}
 
-            {/* Magic Link button (Secondary – Cyan) */}
+            {/* Magic Link button – using btn-secondary */}
             <button
               type="submit"
               disabled={loading || sent}
-              className="w-full bg-jtCyan hover:bg-jtCyanLight text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full btn-secondary disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Sending..." : "Send Magic Link"}
             </button>
@@ -112,4 +112,4 @@ export default function Login() {
       </div>
     </div>
   );
-}
+    }
