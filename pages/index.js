@@ -337,7 +337,7 @@ export default function Home() {
 
             <div className="mt-4 flex items-center gap-3 text-sm text-jtMuted border-t border-jtBorder pt-3">
               <span className="text-xl">💳</span>
-              <span>Mastercard · Visa · EasyPaisa · JazzCash</span>
+              <span>Visa · Mastercard · Google Pay · International Cards</span>
             </div>
 
             <button
