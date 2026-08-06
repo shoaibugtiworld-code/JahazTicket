@@ -16,18 +16,21 @@ export default function Payment() {
   const [passenger, setPassenger] = useState(null);
   const [checked, setChecked] = useState(false);
   const [method, setMethod] = useState(null);
-  const [status, setStatus] = useState(null); // null | "processing" | "pending_integration"
+  const [contact, setContact] = useState(null);
+  const [status, setStatus] = useState(null); // null | "processing"
   const [error, setError] = useState("");
 
   useEffect(() => {
     const o = sessionStorage.getItem("jt_selected_offer");
     const p = sessionStorage.getItem("jt_passenger");
+    const c = sessionStorage.getItem("jt_contact");
     if (!o || !p) {
       router.replace("/");
       return;
     }
     setOffer(JSON.parse(o));
     setPassenger(JSON.parse(p));
+    setContact(c ? JSON.parse(c) : null);
     setChecked(true);
   }, [router]);
 
@@ -42,11 +45,21 @@ export default function Payment() {
       const res = await fetch("/api/payments/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method, offer, passenger }),
+        body: JSON.stringify({
+          offerId: offer.id,
+          passengerId: offer.passengerIds?.[0],
+          passenger,
+          contact,
+        }),
       });
       const data = await res.json();
-      setStatus(data.status);
-      if (data.message) setError(data.message);
+      if (!res.ok || !data.checkoutUrl) {
+        setStatus(null);
+        setError(data.error || "Couldn't start payment — please try again");
+        return;
+      }
+      // Redirect to Safepay's hosted checkout to complete payment.
+      window.location.href = data.checkoutUrl;
     } catch (e) {
       setStatus(null);
       setError("Couldn't reach the server");
@@ -93,7 +106,7 @@ export default function Payment() {
           >
             <span
               className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
-                method === m.id ? "border-brand" : "border-jtBorder"
+                method === m.id ? "border-jtCyan" : "border-jtBorder"
               }`}
             >
               {method === m.id && <span className="w-2.5 h-2.5 rounded-full bg-jtCyan" />}
@@ -107,16 +120,6 @@ export default function Payment() {
       </div>
 
       {error && <p className="text-red-500 text-center px-4 mb-4">{error}</p>}
-
-      {status === "pending_integration" && (
-        <div className="mx-4 bg-white border border-jtBorder rounded-xl2 px-4 py-4 text-center mb-6">
-          <p className="font-semibold mb-1">Payment coming soon</p>
-          <p className="text-jtMuted text-sm">
-            Your payment aggregator isn't connected yet. Once it's live, this button will complete
-            the booking instantly.
-          </p>
-        </div>
-      )}
 
       {/* Sticky bottom price + pay bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-jtBorder px-4 py-4">
