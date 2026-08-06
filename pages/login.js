@@ -1,19 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
 import Logo from "../components/Logo";
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Whenever Supabase reports a real signed-in session (Google OAuth redirect,
-  // or clicking the magic-link email), mirror it into our own jt_session key
-  // so the rest of the app's simple session check works the same way it
-  // already does for guests.
   useEffect(() => {
     if (!supabase) return;
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -34,50 +26,36 @@ export default function Login() {
   };
 
   const signInWithGoogle = async () => {
-    if (!supabase) {
-      setError("Supabase isn't configured.");
-      return;
-    }
-    setError("");
+    if (!supabase) return;
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/` },
     });
   };
 
-  const sendMagicLink = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSent(false);
-    if (!supabase) {
-      setError("Supabase isn't configured.");
-      return;
-    }
-    setLoading(true);
-    const { error: authError } = await supabase.auth.signInWithOtp({ email });
-    setLoading(false);
-    if (authError) {
-      setError(authError.message);
-    } else {
-      setSent(true);
-      setEmail("");
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-jtWhite flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-gradient-to-br from-jtNavy via-[#0d2e52] to-jtNavyDark flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10">
+        <svg className="w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="none">
+          <path d="M0,300 Q300,100 600,300 T1200,300" fill="none" stroke="#00A8E8" strokeWidth="2" />
+          <path d="M0,400 Q400,200 800,400 T1200,400" fill="none" stroke="#00A8E8" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      <div className="max-w-md w-full relative">
         <div className="flex justify-center mb-8">
           <Logo size="large" withText textClass="text-2xl" />
         </div>
 
-        <div className="bg-white rounded-2xl border border-jtBorder p-8 shadow-xl">
-          <h2 className="font-display text-2xl font-bold text-jtNavy text-center mb-2">Welcome Back</h2>
-          <p className="text-jtMuted text-center mb-6">Sign in to manage your bookings</p>
+        <div className="bg-white rounded-3xl border border-jtBorder p-8 shadow-2xl">
+          <h2 className="font-display text-2xl font-bold text-jtNavy text-center mb-1">Welcome to Jahaz Ticket</h2>
+          <p className="text-jtMuted text-center mb-8 text-sm">
+            One clear price, every time you fly.
+          </p>
 
           <button
             onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-3 border border-jtBorder rounded-xl py-3 font-semibold text-jtText hover:bg-gray-50 transition-colors mb-3"
+            className="w-full flex items-center justify-center gap-3 border border-jtBorder rounded-xl py-3.5 font-semibold text-jtText hover:bg-gray-50 hover:border-jtCyan/40 transition-all mb-3 shadow-sm"
           >
             <svg width="20" height="20" viewBox="0 0 48 48">
               <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34 5.1 29.3 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z" />
@@ -88,42 +66,26 @@ export default function Login() {
             Continue with Google
           </button>
 
-          <button onClick={continueAsGuest} className="btn-primary w-full flex items-center justify-center gap-2 mb-4">
-            Continue as Guest
-          </button>
-
-          <div className="relative my-6">
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-jtBorder" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-jtMuted">or</span>
+            <div className="relative flex justify-center text-xs">
+              <span className="px-3 bg-white text-jtMuted uppercase tracking-wide">or</span>
             </div>
           </div>
 
-          <form onSubmit={sendMagicLink}>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading || sent}
-              className="w-full border border-jtBorder rounded-xl px-4 py-3 mb-4 bg-white text-jtText outline-none focus:ring-2 focus:ring-jtCyan/50 focus:border-jtCyan"
-            />
+          <button
+            onClick={continueAsGuest}
+            className="btn-secondary w-full flex items-center justify-center gap-2"
+          >
+            Continue as Guest
+          </button>
 
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-            {sent && (
-              <p className="text-green-600 text-sm mb-4">✅ Magic link sent! Check your email to log in.</p>
-            )}
-
-            <button type="submit" disabled={loading || sent} className="btn-secondary w-full">
-              {loading ? "Sending..." : "Send Magic Link"}
-            </button>
-          </form>
-
-          <p className="text-xs text-jtMuted text-center mt-4">
-            By continuing, you agree to our Terms &amp; Privacy Policy.
+          <p className="text-xs text-jtMuted text-center mt-6">
+            By continuing, you agree to our{" "}
+            <a href="/terms" className="text-jtCyan underline">Terms</a> &amp;{" "}
+            <a href="/privacy" className="text-jtCyan underline">Privacy Policy</a>.
           </p>
         </div>
       </div>
