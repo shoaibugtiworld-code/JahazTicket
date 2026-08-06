@@ -5,12 +5,38 @@ import { applyMarkup, getExchangeRate } from "../../../lib/pricing";
 
 const DUFFEL_API_URL = "https://api.duffel.com/air/offer_requests";
 
-// Minimal country -> currency map for common markets. Falls back to USD.
+// Country -> currency map covering every continent, so any visitor worldwide
+// sees prices in their own local currency automatically. Falls back to the
+// offer's native currency (usually USD) if a country isn't listed here.
 const COUNTRY_CURRENCY = {
-  PK: "PKR", US: "USD", GB: "GBP", AE: "AED", SA: "SAR",
-  IN: "INR", CA: "CAD", AU: "AUD", DE: "EUR", FR: "EUR",
-  QA: "QAR", OM: "OMR", BH: "BHD", KW: "KWD", TR: "TRY",
-  CN: "CNY", TH: "THB", MY: "MYR",
+  // Middle East & South Asia
+  PK: "PKR", IN: "INR", BD: "BDT", LK: "LKR", NP: "NPR", AF: "AFN",
+  AE: "AED", SA: "SAR", QA: "QAR", OM: "OMR", BH: "BHD", KW: "KWD",
+  JO: "JOD", LB: "LBP", IQ: "IQD", IR: "IRR", IL: "ILS", SY: "SYP", YE: "YER",
+  // East & Southeast Asia
+  CN: "CNY", JP: "JPY", KR: "KRW", HK: "HKD", TW: "TWD", SG: "SGD",
+  MY: "MYR", TH: "THB", ID: "IDR", PH: "PHP", VN: "VND", KH: "KHR",
+  LA: "LAK", MM: "MMK", MN: "MNT", MO: "MOP", BN: "BND",
+  // Europe (EUR-zone + others)
+  GB: "GBP", FR: "EUR", DE: "EUR", IT: "EUR", ES: "EUR", NL: "EUR",
+  BE: "EUR", AT: "EUR", PT: "EUR", IE: "EUR", GR: "EUR", FI: "EUR",
+  LU: "EUR", CY: "EUR", MT: "EUR", SK: "EUR", SI: "EUR", EE: "EUR",
+  LV: "EUR", LT: "EUR", HR: "EUR",
+  CH: "CHF", NO: "NOK", SE: "SEK", DK: "DKK", PL: "PLN", CZ: "CZK",
+  HU: "HUF", RO: "RON", BG: "BGN", TR: "TRY", RU: "RUB", UA: "UAH",
+  RS: "RSD", IS: "ISK", AL: "ALL", MK: "MKD", BA: "BAM", MD: "MDL",
+  GE: "GEL", AM: "AMD", AZ: "AZN", KZ: "KZT", UZ: "UZS",
+  // Americas
+  US: "USD", CA: "CAD", MX: "MXN", BR: "BRL", AR: "ARS", CL: "CLP",
+  CO: "COP", PE: "PEN", UY: "UYU", EC: "USD", PY: "PYG", BO: "BOB",
+  VE: "VES", CR: "CRC", PA: "USD", GT: "GTQ", HN: "HNL", SV: "USD",
+  NI: "NIO", DO: "DOP", JM: "JMD", TT: "TTD", BS: "BSD", BB: "BBD",
+  // Africa
+  EG: "EGP", ZA: "ZAR", NG: "NGN", KE: "KES", GH: "GHS", ET: "ETB",
+  MA: "MAD", TN: "TND", DZ: "DZD", TZ: "TZS", UG: "UGX", RW: "RWF",
+  ZM: "ZMW", ZW: "ZWL", MU: "MUR", SN: "XOF", CI: "XOF", CM: "XAF",
+  // Oceania
+  AU: "AUD", NZ: "NZD", FJ: "FJD", PG: "PGK",
 };
 
 
