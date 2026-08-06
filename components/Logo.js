@@ -9,7 +9,7 @@ import React from "react";
  * @param {boolean} withText - Whether to show the "JahazTicket" wordmark
  * @param {string} textClass - Additional Tailwind classes for the text (overrides auto)
  */
-export default function Logo({ size = "default", withText = false, textClass = "" }) {
+export default function Logo({ size = "default", withText = false, textClass = "", invert = false }) {
   let svgSize = 48;
   let defaultTextClass = "text-lg";
 
@@ -48,7 +48,7 @@ export default function Logo({ size = "default", withText = false, textClass = "
       {withText && (
         <div className="flex flex-col leading-none">
           <span className={`font-display font-extrabold tracking-tight ${finalTextClass}`}>
-            <span className="text-jtNavy">Jahaz</span>
+            <span className={invert ? "text-white" : "text-jtNavy"}>Jahaz</span>
             <span className="text-jtCyan">Ticket</span>
           </span>
           {/* Accent swoosh — echoes the icon's wing curve, ties the wordmark to the mark */}
