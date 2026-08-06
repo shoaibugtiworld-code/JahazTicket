@@ -6,6 +6,7 @@ import CountdownTimer from "../components/CountdownTimer";
 import DocumentScanner from "../components/DocumentScanner";
 import { COUNTRIES } from "../lib/countries";
 import { PHONE_CODES } from "../lib/phoneCodes";
+import { supabase } from "../lib/supabaseClient";
 
 const TITLES = ["Mr", "Mrs", "Ms"];
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -42,6 +43,7 @@ export default function Booking() {
   const [passportExpiryYear, setPassportExpiryYear] = useState("");
 
   const [error, setError] = useState("");
+  const [saveDetails, setSaveDetails] = useState(false);
 
   useEffect(() => {
     const session = localStorage.getItem("jt_session");
@@ -56,7 +58,71 @@ export default function Booking() {
     }
     setOffer(JSON.parse(stored));
     setChecked(true);
+
+    // Prefill from a same-device save (works even as a guest)
+    const local = localStorage.getItem("jt_saved_traveller");
+    if (local) applySavedDetails(JSON.parse(local));
+
+    // If logged in with a real account, prefer their account-linked save
+    // (works across devices, not just this browser)
+    const sessionData = JSON.parse(session);
+    if (sessionData.type === "supabase" && supabase) {
+      supabase
+        .from("saved_travellers")
+        .select("*")
+        .eq("user_id", sessionData.userId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            applySavedDetails({
+              title: data.title,
+              givenName: data.given_name,
+              surname: data.surname,
+              dob: data.dob,
+              nationality: data.nationality,
+              cnic: data.cnic,
+              passportNumber: data.passport_number,
+              passportExpiry: data.passport_expiry,
+              phone: data.phone,
+              email: data.email,
+            });
+            setSaveDetails(true);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
+
+  const applySavedDetails = (d) => {
+    if (d.title) setTitle(d.title);
+    if (d.givenName) setGivenName(d.givenName);
+    if (d.surname) setSurname(d.surname);
+    if (d.dob) {
+      const [y, m, dd] = d.dob.split("-");
+      setDobYear(y);
+      setDobMonth(MONTHS[parseInt(m, 10) - 1]);
+      setDobDay(String(parseInt(dd, 10)));
+    }
+    if (d.nationality) setNationality(d.nationality);
+    if (d.cnic) setCnic(d.cnic);
+    if (d.passportNumber) setPassportNumber(d.passportNumber);
+    if (d.passportExpiry) {
+      const [y, m, dd] = d.passportExpiry.split("-");
+      setPassportExpiryYear(y);
+      setPassportExpiryMonth(MONTHS[parseInt(m, 10) - 1]);
+      setPassportExpiryDay(String(parseInt(dd, 10)));
+    }
+    if (d.email) setEmail(d.email);
+    if (d.phone) {
+      const matchedCode = PHONE_CODES.find((p) => d.phone.startsWith(p.dial));
+      if (matchedCode) {
+        setPhoneCode(matchedCode.dial);
+        setMobile(d.phone.slice(matchedCode.dial.length));
+      } else {
+        setMobile(d.phone);
+      }
+    }
+  };
 
   const applyPassportScan = (result) => {
     if (result.passportNumber) setPassportNumber(result.passportNumber);
@@ -120,6 +186,33 @@ export default function Booking() {
     };
     sessionStorage.setItem("jt_contact", JSON.stringify({ mobile: `${phoneCode}${mobile}`, email }));
     sessionStorage.setItem("jt_passenger", JSON.stringify(passenger));
+
+    if (saveDetails) {
+      localStorage.setItem("jt_saved_traveller", JSON.stringify(passenger));
+
+      const session = JSON.parse(localStorage.getItem("jt_session") || "{}");
+      if (session.type === "supabase" && supabase) {
+        supabase
+          .from("saved_travellers")
+          .upsert({
+            user_id: session.userId,
+            title,
+            given_name: givenName,
+            surname,
+            dob,
+            nationality,
+            cnic,
+            passport_number: passportNumber,
+            passport_expiry: passportExpiry,
+            phone: `${phoneCode}${mobile}`,
+            email,
+          })
+          .then(() => {});
+      }
+    } else {
+      localStorage.removeItem("jt_saved_traveller");
+    }
+
     router.push("/addons");
   };
 
@@ -354,6 +447,21 @@ export default function Booking() {
             </div>
           </div>
         </div>
+
+        <label className="flex items-start gap-3 bg-white border border-jtBorder rounded-xl px-4 py-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={saveDetails}
+            onChange={(e) => setSaveDetails(e.target.checked)}
+            className="mt-1 w-4 h-4 accent-jtCyan"
+          />
+          <span className="text-sm">
+            <span className="font-medium text-jtText">Save my details for next time</span>
+            <span className="block text-jtMuted text-xs mt-0.5">
+              We'll fill this form in automatically on your next booking.
+            </span>
+          </span>
+        </label>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
