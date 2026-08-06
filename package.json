@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "@sfpy/node-sdk": "^1.0.5",
     "next": "14.2.35",
     "pdf-lib": "^1.17.1",
     "tesseract.js": "^5.1.1",
