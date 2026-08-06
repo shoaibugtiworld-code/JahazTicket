@@ -44,7 +44,7 @@ export default function Login() {
 
       <div className="max-w-md w-full relative">
         <div className="flex justify-center mb-8">
-          <Logo size="large" withText textClass="text-2xl" />
+          <Logo size="large" withText textClass="text-2xl" invert />
         </div>
 
         <div className="bg-white rounded-3xl border border-jtBorder p-8 shadow-2xl">
