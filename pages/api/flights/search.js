@@ -1,9 +1,9 @@
 // Server-side flight search — the ONLY place price math happens.
 // The client never sees Duffel's raw price, only price + markup.
 // This is what guarantees "jo price dikhega, wahi final price hoga".
+import { applyMarkup, getExchangeRate } from "../../../lib/pricing";
 
 const DUFFEL_API_URL = "https://api.duffel.com/air/offer_requests";
-const MARKUP_PERCENT = Number(process.env.MARKUP_PERCENT || 10); // 10%
 
 // Minimal country -> currency map for common markets. Falls back to USD.
 const COUNTRY_CURRENCY = {
@@ -13,22 +13,6 @@ const COUNTRY_CURRENCY = {
   CN: "CNY", TH: "THB", MY: "MYR",
 };
 
-async function getExchangeRate(fromCurrency, toCurrency) {
-  if (fromCurrency === toCurrency) return 1;
-  try {
-    const res = await fetch(`https://open.er-api.com/v6/latest/${fromCurrency}`);
-    const data = await res.json();
-    return data?.rates?.[toCurrency] || null;
-  } catch {
-    return null;
-  }
-}
-
-function applyMarkup(amount) {
-  const base = parseFloat(amount);
-  const withMarkup = base * (1 + MARKUP_PERCENT / 100);
-  return withMarkup.toFixed(2);
-}
 
 // Converts Duffel's ISO 8601 duration ("PT2H15M") into "2h 15m"
 function formatDuration(iso) {
