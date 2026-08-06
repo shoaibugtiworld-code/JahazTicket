@@ -102,6 +102,37 @@ const POPULAR_ROUTES = [
   ["Cairo", "London"],
   ["Sydney", "Singapore"],
   ["Nairobi", "Dubai"],
+  ["Karachi", "Jeddah"],
+  ["Lahore", "Dubai"],
+  ["Islamabad", "Dubai"],
+  ["Dubai", "London"],
+  ["Dubai", "New York"],
+  ["Doha", "London"],
+  ["Riyadh", "Cairo"],
+  ["Istanbul", "London"],
+  ["Frankfurt", "New York"],
+  ["Amsterdam", "New York"],
+  ["London", "Toronto"],
+  ["London", "Los Angeles"],
+  ["Paris", "New York"],
+  ["Tokyo", "Los Angeles"],
+  ["Hong Kong", "Singapore"],
+  ["Bangkok", "Singapore"],
+  ["Kuala Lumpur", "Singapore"],
+  ["Mumbai", "Dubai"],
+  ["Johannesburg", "London"],
+  ["Cape Town", "Dubai"],
+  ["Nairobi", "London"],
+  ["Cairo", "Jeddah"],
+  ["Zurich", "New York"],
+  ["Madrid", "Miami"],
+  ["Rome", "New York"],
+  ["Sydney", "London"],
+  ["Melbourne", "Dubai"],
+  ["Vancouver", "Tokyo"],
+  ["Chicago", "London"],
+  ["Miami", "London"],
+  ["Toronto", "Dubai"],
 ];
 
 const FOOTER_LINKS = [
@@ -192,7 +223,7 @@ export default function Footer() {
         </div>
 
         <Column title="Popular Routes Worldwide">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-base">
             {POPULAR_ROUTES.map(([from, to]) => (
               <button key={`${from}-${to}`} onClick={() => goToRoute(from, to)} className={linkClass}>
                 {from} → {to}
