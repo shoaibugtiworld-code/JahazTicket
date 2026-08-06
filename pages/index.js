@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Logo from "../components/Logo";
 import Footer from "../components/Footer";
 import AirportAutocomplete from "../components/AirportAutocomplete";
+import { supabase } from "../lib/supabaseClient";
 
 const TRIP_TYPES = ["One-way", "Round-trip", "Multi-city"];
 
@@ -34,11 +35,27 @@ export default function Home() {
 
   useEffect(() => {
     const session = localStorage.getItem("jt_session");
-    if (!session) {
+    if (session) {
+      setCheckedSession(true);
+      return;
+    }
+    // Google OAuth redirects straight back to "/" — check for a real
+    // Supabase session before deciding to bounce to /login.
+    if (!supabase) {
       router.replace("/login");
       return;
     }
-    setCheckedSession(true);
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) {
+        localStorage.setItem(
+          "jt_session",
+          JSON.stringify({ type: "supabase", userId: data.session.user.id, email: data.session.user.email })
+        );
+        setCheckedSession(true);
+      } else {
+        router.replace("/login");
+      }
+    });
   }, [router]);
 
   // Pre-fill and auto-search when arriving from a Footer route/airline shortcut
@@ -161,6 +178,7 @@ export default function Home() {
 
   const handleSignOut = () => {
     localStorage.removeItem("jt_session");
+    if (supabase) supabase.auth.signOut();
     router.push("/login");
   };
 
