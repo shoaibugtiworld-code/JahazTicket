@@ -240,7 +240,10 @@ export default function Booking() {
         {offer.legs.map((leg, i) => (
           <p key={i} className="text-jtMuted text-sm">
             {leg.originAirport} → {leg.destinationAirport} ·{" "}
-            {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
+            {leg.departureDate
+              ? new Date(leg.departureDate).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })
+              : ""}{" "}
+            · {leg.stops === 0 ? "Direct" : `${leg.stops} stop(s)`}
           </p>
         ))}
         <p className="text-jtNavy font-bold text-lg mt-2">
