@@ -158,8 +158,20 @@ export default async function handler(req, res) {
     // Sort cheapest-first so the lowest final price is always shown on top.
     offers.sort((a, b) => parseFloat(a.finalPrice) - parseFloat(b.finalPrice));
 
+    // The same physical flight is often sold under several fare brands
+    // (Economy Value, Classic, Flex...) which looks like duplicate/fake
+    // results to a first-time visitor. Keep only the cheapest fare per
+    // unique itinerary (same flight numbers on every leg).
+    const seenItineraries = new Set();
+    const dedupedOffers = offers.filter((offer) => {
+      const key = offer.legs.map((leg) => leg.flightNumbers.join("+")).join("|");
+      if (seenItineraries.has(key)) return false;
+      seenItineraries.add(key);
+      return true;
+    });
+
     // Strip basePrice before responding — frontend should only ever see finalPrice.
-    const publicOffers = offers.map(({ basePrice, ...rest }) => rest);
+    const publicOffers = dedupedOffers.map(({ basePrice, ...rest }) => rest);
 
     return res.status(200).json({ offers: publicOffers });
   } catch (err) {
