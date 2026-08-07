@@ -425,6 +425,9 @@ export default function Home() {
 
                 <div className="mt-3 pt-3 border-t border-jtBorder">
                   {offer.legs.map((leg, i) => {
+                    const depDate = leg.departureDate
+                      ? new Date(leg.departureDate).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" })
+                      : "-";
                     const depTime = leg.departureDate
                       ? new Date(leg.departureDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
                       : "-";
@@ -432,17 +435,20 @@ export default function Home() {
                       ? new Date(leg.arrivalDate).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
                       : "-";
                     return (
-                      <div key={i} className="flex items-center justify-between text-sm py-1">
-                        <span className="font-medium text-jtText">{depTime}</span>
-                        <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
-                        <span className="font-medium text-jtText">{arrTime}</span>
-                        <span className="text-xs text-jtMuted">
-                          {leg.originCity || leg.originAirport} ({leg.originAirport}) →{" "}
-                          {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
-                        </span>
-                        <span className="text-xs text-jtMuted">
-                          {leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}
-                        </span>
+                      <div key={i} className="py-1.5 border-b border-jtBorder/60 last:border-0">
+                        <p className="text-jtCyan text-xs font-semibold mb-0.5">{depDate}</p>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-jtText">{depTime}</span>
+                          <span className="text-jtMuted text-xs">{leg.duration || ""}</span>
+                          <span className="font-medium text-jtText">{arrTime}</span>
+                          <span className="text-xs text-jtMuted">
+                            {leg.originCity || leg.originAirport} ({leg.originAirport}) →{" "}
+                            {leg.destinationCity || leg.destinationAirport} ({leg.destinationAirport})
+                          </span>
+                          <span className="text-xs text-jtMuted">
+                            {leg.stops === 0 ? "Nonstop" : `${leg.stops} stop(s)`}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}
